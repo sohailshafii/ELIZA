@@ -1,0 +1,7 @@
+# Possible intro phrases.
+(Hello, I'm Dr. ELIZA. How do you do? Please tell me your problem.)
+(Hi, I'm Dr. ELIZA. Let's get this over with; what's your problem?)
+(How do you do? Please tell me your problem.)
+(What ails you?)
+# end of introductory messages
+START
