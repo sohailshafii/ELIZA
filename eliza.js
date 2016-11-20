@@ -8,21 +8,16 @@ scriptReader = new scriptReader("./elizaScript.txt");
 scriptReader.readFile();
 
 readLineInterface.on('line', function(line) {
-  switch(line.trim()) {
-    case 'hello':
-      console.log('world!');
-      break;
-    default:
-      console.log('Say what? I might have heard `' + line.trim() + '`');
-      break;
-  }
+  
+  console.log(scriptReader.analyzeLine(line));
+
   readLineInterface.setPrompt(prefix, prefix.length);
   readLineInterface.prompt();
 }).on('close', function() {
-  console.log("Have a nice day.");
+  console.log("\nHave a nice day.");
   process.exit(0);
 });
 
-console.log(prefix + scriptReader.getRandomIntroLine());
+console.log(scriptReader.getRandomIntroLine());
 readLineInterface.setPrompt(prefix, prefix.length);
 readLineInterface.prompt();

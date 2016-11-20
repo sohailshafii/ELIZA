@@ -1,12 +1,15 @@
 function ScriptReader(scriptFileName) {
   this.scriptFileName = scriptFileName;
   this.introductoryLines = [];
+
+  this.openingParenCount = 0;
+  this.closingParenCount = 0;
 }
 
 ScriptReader.prototype =
 {
   analyzeLine: function(line) {
-  
+    
   },
 
   getRandomIntroLine: function()
@@ -16,8 +19,29 @@ ScriptReader.prototype =
     return this.introductoryLines[randomIndex];
   },
 
+  handleWord: function(trimmedLine) {
+    // grab next word
+    console.log(trimmedLine + "--" + trimmedLine.match(/^[^\s\)]+/));
+  },
+
+  analyzeScriptLine: function(line) {
+    for (var charIndex = 0, lineLength = line.length;
+      charIndex < lineLength; charIndex++) {
+      var currentCharacter = line[charIndex];
+
+      if (currentCharacter == '(')
+        this.openingParenCount++;
+      else if (currentCharacter == ')')
+        this.closingParenCount++;
+      else {
+        this.handleWord(line.substr(charIndex, lineLength-1));
+      }
+    }
+  },
+
   readFile: function() {
     var fs = require('fs');
+
     try {
       var fileData = fs.readFileSync(this.scriptFileName, 'utf8');
       var lines = fileData.split('\n');
@@ -25,6 +49,7 @@ ScriptReader.prototype =
      
       var commentRe = /#.*/;
       var startIndicator = /START/;
+
       var finishedIntroductorySection = false;
 
       for(var lineIndex = 0; lineIndex < numLines; lineIndex++) 
@@ -36,11 +61,14 @@ ScriptReader.prototype =
         {
           finishedIntroductorySection = startIndicator.exec(currentLine);
           if (!finishedIntroductorySection)
-            this.introductoryLines.push(currentLine);
+          {
+            var trimmedIntroLine = currentLine.replace(/(^\()|(\)$)/g, "");
+            this.introductoryLines.push(trimmedIntroLine);
+          }
         }
         else
         {
-
+          this.analyzeScriptLine(currentLine);
         }
       }
     } 
