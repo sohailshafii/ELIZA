@@ -2,8 +2,7 @@ function ScriptReader(scriptFileName) {
   this.scriptFileName = scriptFileName;
   this.introductoryLines = [];
 
-  this.openingParenCount = 0;
-  this.closingParenCount = 0;
+  this.phraseRegEx = /^[^\(\)]+/;
 }
 
 ScriptReader.prototype =
@@ -19,23 +18,75 @@ ScriptReader.prototype =
     return this.introductoryLines[randomIndex];
   },
 
-  handleWord: function(trimmedLine) {
-    // grab next word
-    console.log(trimmedLine + "--" + trimmedLine.match(/^[^\s\)]+/));
+  testSnippetAgainstPhraseRegEx: function(snippet) {
+    return this.phraseRegEx.exec(snippet);
   },
 
   analyzeScriptLine: function(line) {
+
     for (var charIndex = 0, lineLength = line.length;
       charIndex < lineLength; charIndex++) {
       var currentCharacter = line[charIndex];
 
       if (currentCharacter == '(')
-        this.openingParenCount++;
-      else if (currentCharacter == ')')
-        this.closingParenCount++;
-      else {
-        this.handleWord(line.substr(charIndex, lineLength-1));
+      {
+        this.openParenCount++;
       }
+      else if (currentCharacter == ')')
+      {
+        this.openParenCount--;
+      }
+      else {
+        var regExResult = this.testSnippetAgainstPhraseRegEx(line.substr(charIndex, lineLength-1));
+        if (regExResult != null)
+        {
+          var matchTrimmedSpaces = regExResult[0].replace(/(^\s+|\s+$)/g,'');
+          if (matchTrimmedSpaces.length > 0)
+          {
+            if (this.currentKeyword == null)
+            {
+              this.currentKeyword = matchTrimmedSpaces;
+            }
+            else if (this.curentDecompRule == null)
+            {
+              this.curentDecompRule = matchTrimmedSpaces;
+            }
+            else
+            {
+              // if the open paren count is 3, that means continue last
+              // reconstruction
+              if (this.trailingSentence)
+              {
+                var lastReconstrIndex = this.currentReconstructions.length-1;
+                var lastReconstr = this.currentReconstructions[lastReconstrIndex];
+                this.trailingSentence = false;
+                lastReconstr += " " + matchTrimmedSpaces;
+                this.currentReconstructions[lastReconstrIndex] = lastReconstr;
+              }
+              else
+                this.currentReconstructions.push(matchTrimmedSpaces);
+            }
+          }
+          // move to last character
+          charIndex += regExResult.index + regExResult[0].length-1;
+        }
+      }
+
+      // after last open paren is closed, look for new keyword
+      if (this.openParenCount == 0)
+      {
+        this.currentKeyword = null;
+      }
+      // when we have closed all but one parenthesis,
+      // we have to look for reconstruction again
+      if (this.openParenCount == 1)
+      {
+        console.log(this.currentKeyword + ", decomp rules for " + this.curentDecompRule + ": " +
+          this.currentReconstructions);
+        this.curentDecompRule = null;
+        this.currentReconstructions = [];
+      }
+
     }
   },
 
@@ -51,6 +102,13 @@ ScriptReader.prototype =
       var startIndicator = /START/;
 
       var finishedIntroductorySection = false;
+
+      this.openParenCount = 0;
+      this.currentKeyword = null;
+      this.currentDecomposition = null;
+      this.curentDecompRule = "";
+      this.currentReconstructions = [];
+      this.lastLineHadClosingParen = false;
 
       for(var lineIndex = 0; lineIndex < numLines; lineIndex++) 
       {
@@ -69,6 +127,9 @@ ScriptReader.prototype =
         else
         {
           this.analyzeScriptLine(currentLine);
+          var trimmedLine = currentLine.trim();
+          this.trailingSentence = (trimmedLine[trimmedLine.length-1] !== ')' &&
+            this.currentKeyword != null);
         }
       }
     } 
