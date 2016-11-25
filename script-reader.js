@@ -1,21 +1,13 @@
 
-var speechAnalyzerModule = require('./speech-analyzer');
-var speechAnalyzer = speechAnalyzerModule.refToSpeechAnalyzer;
-
 function ScriptReader(scriptFileName) {
   this.scriptFileName = scriptFileName;
   this.introductoryLines = [];
 
   this.phraseRegEx = /^[^\(\)]+/;
-  this.speechAnalyzer = new speechAnalyzer();
 }
 
 ScriptReader.prototype =
 {
-  analyzeLine: function(line) {
-    
-  },
-
   getRandomIntroLine: function()
   {
     var numTotalLines = this.introductoryLines.length;
@@ -27,7 +19,7 @@ ScriptReader.prototype =
     return this.phraseRegEx.exec(snippet);
   },
 
-  analyzeScriptLine: function(line) {
+  analyzeScriptLine: function(line, speechAnalyzer) {
 
     for (var charIndex = 0, lineLength = line.length;
       charIndex < lineLength; charIndex++) {
@@ -91,7 +83,7 @@ ScriptReader.prototype =
       {
         console.log(this.currentKeyword + ", decomp rules for " + this.curentDecompRule + ": " +
           this.currentReconstructions);
-        this.speechAnalyzer.addDecompRules(this.currentKeyword, this.curentDecompRule, this.currentReconstructions);
+        speechAnalyzer.addDecompRules(this.currentKeyword, 1, this.curentDecompRule, this.currentReconstructions);
         this.curentDecompRule = null;
         this.currentReconstructions = [];
       }
@@ -99,7 +91,7 @@ ScriptReader.prototype =
     }
   },
 
-  readFile: function() {
+  readFile: function(speechAnalyzer) {
     var fs = require('fs');
 
     try {
@@ -134,7 +126,7 @@ ScriptReader.prototype =
         }
         else
         {
-          this.analyzeScriptLine(currentLine);
+          this.analyzeScriptLine(currentLine, speechAnalyzer);
           var trimmedLine = currentLine.trim();
           this.trailingSentence = (trimmedLine[trimmedLine.length-1] !== ')' &&
             this.currentKeyword != null);
@@ -145,7 +137,7 @@ ScriptReader.prototype =
     {
       console.log("Script read error: ", e.stack);
     }
-    this.speechAnalyzer.barf();
+    speechAnalyzer.barf();
   }
 };
 

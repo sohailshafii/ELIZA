@@ -2,11 +2,12 @@ function KeywordRules ()
 {
   this.keyword = null;
   this.decompToReconstruction = {};
+  this.ranking = 0;
 }
 
 KeywordRules.prototype =
 {
-  addDecompAndReconstructions(decompositionString, reconstructionStrings)
+  addDecompAndReconstructions(decompositionString, reconstructionStrings, ranking)
   {
     if (decompositionString === null || reconstructionStrings === null) return;
 
@@ -55,6 +56,12 @@ KeywordRules.prototype =
     }
   },
 
+  attemptReconstruction: function(inputLine)
+  {
+    // TODO
+
+  },
+
   barf: function()
   {
     for (var decomp in this.decompToReconstruction)
@@ -77,7 +84,7 @@ function SpeechAnalyzer(){
 
 SpeechAnalyzer.prototype =
 {
-  addDecompRules: function(keyword, decompositionString, reconstructionStrings)
+  addDecompRules: function(keyword, ranking, decompositionString, reconstructionStrings)
   {
     if (keyword == null) return;
     if (!this.keywordToKeywordRules.hasOwnProperty(keyword))
@@ -86,7 +93,51 @@ SpeechAnalyzer.prototype =
     }
 
     var keywordRules = this.keywordToKeywordRules[keyword];
+    keywordRules.keyword = keyword;
+    keywordRules.ranking = ranking;
     keywordRules.addDecompAndReconstructions(decompositionString, reconstructionStrings);
+  },
+
+  analyzeInputLine: function(inputLine)
+  {
+    var outputLine = "lol";
+    var inputLineArray = inputLine.split(" ");
+    var currentMaxRanking = -1;
+    var keywordRulesStack = [];
+
+    for (var inputLineArrayIndex = 0, inputLineArrayLength = inputLineArray.length;
+      inputLineArrayIndex < inputLineArrayLength; inputLineArrayIndex++)
+    {
+      var currentWord = inputLineArray[inputLineArrayIndex].toUpperCase();
+      console.log(currentWord);
+      if (this.keywordToKeywordRules.hasOwnProperty(currentWord))
+      {
+        var keywordRules = this.keywordToKeywordRules[currentWord];
+        var newRankingIsGreater = keywordRules.ranking > currentMaxRanking;
+        console.log("keyword rules: " + keywordRules);
+        if (newRankingIsGreater)
+        {
+          // highest ranked items at beginning
+          currentMaxRanking = keywordRules.ranking;
+          keywordRulesStack.splice(0, 0, keywordRules);
+        }
+        else
+        {
+          keywordRulesStack.push(keywordRules);
+        }
+      }
+      // TODO: reset keystrack if "," or "." is encountered!
+    }
+
+    console.log("keystack: " + keywordRulesStack);
+    for (var keywordStackIndex = 0, keywordStackLength = keywordRulesStack.length;
+      keywordStackIndex < keywordStackLength; keywordStackIndex++)
+    {
+      var currentKeywordRules = keywordRulesStack[keywordStackIndex];
+      currentKeywordRules.attemptReconstruction(inputLine);
+    }
+
+    return outputLine;
   },
 
   barf: function()
