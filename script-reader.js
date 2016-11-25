@@ -1,8 +1,13 @@
+
+var speechAnalyzerModule = require('./speech-analyzer');
+var speechAnalyzer = speechAnalyzerModule.refToSpeechAnalyzer;
+
 function ScriptReader(scriptFileName) {
   this.scriptFileName = scriptFileName;
   this.introductoryLines = [];
 
   this.phraseRegEx = /^[^\(\)]+/;
+  this.speechAnalyzer = new speechAnalyzer();
 }
 
 ScriptReader.prototype =
@@ -43,6 +48,9 @@ ScriptReader.prototype =
           var matchTrimmedSpaces = regExResult[0].replace(/(^\s+|\s+$)/g,'');
           if (matchTrimmedSpaces.length > 0)
           {
+            // exclude substitutions for now
+            if (matchTrimmedSpaces.includes("=")) return;
+
             if (this.currentKeyword == null)
             {
               this.currentKeyword = matchTrimmedSpaces;
@@ -83,6 +91,7 @@ ScriptReader.prototype =
       {
         console.log(this.currentKeyword + ", decomp rules for " + this.curentDecompRule + ": " +
           this.currentReconstructions);
+        this.speechAnalyzer.addDecompRules(this.currentKeyword, this.curentDecompRule, this.currentReconstructions);
         this.curentDecompRule = null;
         this.currentReconstructions = [];
       }
@@ -105,7 +114,6 @@ ScriptReader.prototype =
 
       this.openParenCount = 0;
       this.currentKeyword = null;
-      this.currentDecomposition = null;
       this.curentDecompRule = "";
       this.currentReconstructions = [];
       this.lastLineHadClosingParen = false;
@@ -137,7 +145,7 @@ ScriptReader.prototype =
     {
       console.log("Script read error: ", e.stack);
     }
-
+    this.speechAnalyzer.barf();
   }
 };
 
