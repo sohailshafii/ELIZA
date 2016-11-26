@@ -20,6 +20,7 @@ Reconstructions.prototype =
 function KeywordRules ()
 {
   this.keyword = null;
+  this.replacementKeyword = null;
   this.decompToReconstruction = {};
   this.ranking = 0;
 }
@@ -95,10 +96,8 @@ KeywordRules.prototype =
           {
             var currentToken = reconstructionToBeUsed[tokenIndex];
             if (tokenIndex > 0) reconstructedLine += " ";
-            var regExTest = new RegExp("blah");
-            var testVar = /^\d./.test(currentToken);
             // if it's a number, look up token in original line
-            if (testVar === true)
+            if (/^\d./.test(currentToken))
             {
               reconstructedLine += inputLineParsed[parseInt(currentToken)];
             }
@@ -136,7 +135,8 @@ function SpeechAnalyzer(){
 
 SpeechAnalyzer.prototype =
 {
-  addDecompRules: function(keyword, ranking, decompositionString, reconstructionStrings)
+  addDecompRules: function(keyword, replacementKeyword, ranking, 
+  	decompositionString, reconstructionStrings)
   {
     if (keyword == null) return;
     if (!this.keywordToKeywordRules.hasOwnProperty(keyword))
@@ -146,6 +146,7 @@ SpeechAnalyzer.prototype =
 
     var keywordRules = this.keywordToKeywordRules[keyword];
     keywordRules.keyword = keyword;
+    keywordRules.replacementKeyword = replacementKeyword;
     keywordRules.ranking = ranking;
     keywordRules.addDecompAndReconstructions(decompositionString, reconstructionStrings);
   },
@@ -197,36 +198,49 @@ SpeechAnalyzer.prototype =
     for (var inputLineArrayIndex = 0, inputLineArrayLength = inputLineArray.length;
       inputLineArrayIndex < inputLineArrayLength; inputLineArrayIndex++)
     {
-      var currentWord = inputLineArray[inputLineArrayIndex].toUpperCase();
+      var currentWordNormalCase = inputLineArray[inputLineArrayIndex];
+      var currentWord = currentWordNormalCase.toUpperCase();
       
-      // avoid duplicate keywords
-      if (this.keywordToKeywordRules.hasOwnProperty(currentWord) &&
-        !keywordsUsed.hasOwnProperty(currentWord))
+      // if keyword encountered
+      if (this.keywordToKeywordRules.hasOwnProperty(currentWord))
       {
         var keywordRules = this.keywordToKeywordRules[currentWord];
-        var newRankingIsGreater = keywordRules.ranking > currentMaxRanking;
-        
-        if (newRankingIsGreater)
+
+        if (keywordRules.replacementKeyword != null)
         {
-          // highest ranked items at beginning
-          currentMaxRanking = keywordRules.ranking;
-          keywordRulesStack.splice(0, 0, keywordRules);
+          inputLine = inputLine.replace(new RegExp(currentWordNormalCase), keywordRules.replacementKeyword.toLowerCase());
         }
-        else
+
+        // include keyword in stack only once
+        if (!keywordsUsed.hasOwnProperty(currentWord))
         {
-          keywordRulesStack.push(keywordRules);
-        }
-        keywordsUsed[currentWord] = currentWord;
+          console.log("keyword..." + currentWord);
+          var newRankingIsGreater = keywordRules.ranking > currentMaxRanking;
+          
+          if (newRankingIsGreater)
+          {
+            // highest ranked items at beginning
+            currentMaxRanking = keywordRules.ranking;
+            keywordRulesStack.splice(0, 0, keywordRules);
+          }
+          else
+          {
+            keywordRulesStack.push(keywordRules);
+          }
+          keywordsUsed[currentWord] = currentWord;
+    	 }
       }
 
-      // reset keystrack if punctuation encountered
-      if (punctuationRegEx.test(currentWord))
+      // reset keystrack if punctuation encountered. but don't do it if it's the last
+      // word
+      if (punctuationRegEx.test(currentWord) && inputLineArrayIndex != inputLineArrayLength-1)
       {
         keywordRulesStack = [];
         keywordsUsed = {};
       }
     }
 
+    console.log("Line after keyword processing and all replacements: " + inputLine);
     for (var keywordStackIndex = 0, keywordStackLength = keywordRulesStack.length;
       keywordStackIndex < keywordStackLength; keywordStackIndex++)
     {
