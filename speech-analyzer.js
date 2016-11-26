@@ -1,3 +1,22 @@
+function Reconstructions ()
+{
+  this.list = null;
+  this.nextReconstructionToBeUsed = 0;
+}
+
+Reconstructions.prototype =
+{
+  // cycle through reconstructions
+  getNextReconstruction: function()
+  {
+    if (this.list == null || this.list.length == 0) return null;
+    if (this.nextReconstructionToBeUsed == this.list.length)
+      this.nextReconstructionToBeUsed = 0;
+    return this.list[this.nextReconstructionToBeUsed++];
+  }
+};
+
+
 function KeywordRules ()
 {
   this.keyword = null;
@@ -7,7 +26,7 @@ function KeywordRules ()
 
 KeywordRules.prototype =
 {
-  addDecompAndReconstructions(decompositionString, reconstructionStrings, ranking)
+  addDecompAndReconstructions: function(decompositionString, reconstructionStrings, ranking)
   {
     if (decompositionString === null || reconstructionStrings === null) return;
 
@@ -25,8 +44,8 @@ KeywordRules.prototype =
       {
         decompositionRegExString += " ";
       }
-
-      if (/^\d*/.exec(currentToken))
+      console.log("current decomp token: " + currentToken);
+      if (/^\d+/.test(currentToken))
       {
         if (currentToken == 0)
         {
@@ -52,14 +71,47 @@ KeywordRules.prototype =
         var currentReconstr = reconstructionStrings[reconsIndex];
         reconsArray.push(currentReconstr.split(" "));
       }
-      this.decompToReconstruction[decompositionRegExString] = reconsArray;
+      this.decompToReconstruction[decompositionRegExString] = new Reconstructions();
+      this.decompToReconstruction[decompositionRegExString].list = reconsArray;
     }
   },
 
   attemptReconstruction: function(inputLine)
   {
-    // TODO
+    var reconstructedLine = null;
+    for (var decomp in this.decompToReconstruction)
+    {
+      var decompRegEx = new RegExp(decomp);
+      if (decompRegEx.test(inputLine))
+      {
+        // create a reconstruction
+        var inputLineParsed = inputLine.split(" ");
+        var reconstructionToBeUsed = this.decompToReconstruction[decomp].getNextReconstruction();
+        if (reconstructionToBeUsed !== null)
+        {
+          reconstructedLine = "";
+          for (var tokenIndex = 0, numTokens = reconstructionToBeUsed.length;
+            tokenIndex < numTokens; tokenIndex++)
+          {
+            var currentToken = reconstructionToBeUsed[tokenIndex];
+            if (tokenIndex > 0) reconstructedLine += " ";
+            var regExTest = new RegExp("blah");
+            var testVar = /^\d./.test(currentToken);
+            // if it's a number, look up token in original line
+            if (testVar === true)
+            {
+              reconstructedLine += inputLineParsed[parseInt(currentToken)];
+            }
+            else {
+              reconstructedLine += currentToken;
+            }
+          }
+          break;
+        }
+      }
+    }
 
+    return reconstructedLine;
   },
 
   barf: function()
@@ -68,7 +120,7 @@ KeywordRules.prototype =
     {
       if (!this.decompToReconstruction.hasOwnProperty(decomp)) return;
       console.log("Decomposition: " + decomp);
-      var reconstructions = this.decompToReconstruction[decomp];
+      var reconstructions = this.decompToReconstruction[decomp].list;
       for (var reconsIndex = 0, reconstLength = reconstructions.length; 
         reconsIndex < reconstLength; reconsIndex++)
       {
@@ -104,17 +156,27 @@ SpeechAnalyzer.prototype =
     var inputLineArray = inputLine.split(" ");
     var currentMaxRanking = -1;
     var keywordRulesStack = [];
+    var keywordsUsed = {};
+
+    // special stupid case: insert in-between array in case we have punctuation
+    for (var inputLineArrayIndex = 0, inputLineArrayLength = inputLineArray.length;
+      inputLineArrayIndex < inputLineArrayLength; inputLineArrayIndex++)
+    {
+      
+    }
 
     for (var inputLineArrayIndex = 0, inputLineArrayLength = inputLineArray.length;
       inputLineArrayIndex < inputLineArrayLength; inputLineArrayIndex++)
     {
       var currentWord = inputLineArray[inputLineArrayIndex].toUpperCase();
-      console.log(currentWord);
-      if (this.keywordToKeywordRules.hasOwnProperty(currentWord))
+      
+      // avoid duplicate keywords
+      if (this.keywordToKeywordRules.hasOwnProperty(currentWord) &&
+        !keywordsUsed.hasOwnProperty(currentWord))
       {
         var keywordRules = this.keywordToKeywordRules[currentWord];
         var newRankingIsGreater = keywordRules.ranking > currentMaxRanking;
-        console.log("keyword rules: " + keywordRules);
+        
         if (newRankingIsGreater)
         {
           // highest ranked items at beginning
@@ -125,16 +187,21 @@ SpeechAnalyzer.prototype =
         {
           keywordRulesStack.push(keywordRules);
         }
+        keywordsUsed[currentWord] = currentWord;
       }
       // TODO: reset keystrack if "," or "." is encountered!
     }
 
-    console.log("keystack: " + keywordRulesStack);
     for (var keywordStackIndex = 0, keywordStackLength = keywordRulesStack.length;
       keywordStackIndex < keywordStackLength; keywordStackIndex++)
     {
       var currentKeywordRules = keywordRulesStack[keywordStackIndex];
-      currentKeywordRules.attemptReconstruction(inputLine);
+      var currentAttempt = currentKeywordRules.attemptReconstruction(inputLine);
+      if (currentAttempt !== null)
+      {
+        outputLine = currentAttempt;
+        break;
+      }
     }
 
     return outputLine;
