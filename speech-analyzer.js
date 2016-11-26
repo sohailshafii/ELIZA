@@ -150,20 +150,49 @@ SpeechAnalyzer.prototype =
     keywordRules.addDecompAndReconstructions(decompositionString, reconstructionStrings);
   },
 
+  tokenizeBasedOnSpaceAndPunctuation: function(inputLine)
+  {
+    var currentInputLineArray = [];
+    var newWord = true;
+    var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
+    var spaceRegEx = /\s/;
+    for (var inputLineIndex = 0, inputLineLength = inputLine.length;
+      inputLineIndex < inputLineLength; inputLineIndex++)
+    {
+      var currentCharacter = inputLine[inputLineIndex];
+      // skip spaces and indicate that we are on new word
+      if (spaceRegEx.test(currentCharacter)) 
+      { newWord = true; continue; }
+
+      if (punctuationRegEx.test(currentCharacter))
+      {
+        currentInputLineArray.push(currentCharacter);
+        newWord = true;
+      }
+      // new word encountered with new character, turn flag off so that we can
+      // append to it on loops next iteration
+      else if (newWord)
+      {
+        currentInputLineArray.push(currentCharacter);
+        newWord = false;
+      }
+      else
+      {
+        currentInputLineArray[currentInputLineArray.length-1] += currentCharacter;
+      }
+    }
+    return currentInputLineArray;
+  },
+
   analyzeInputLine: function(inputLine)
   {
     var outputLine = "lol";
-    var inputLineArray = inputLine.split(" ");
     var currentMaxRanking = -1;
     var keywordRulesStack = [];
     var keywordsUsed = {};
-
-    // special stupid case: insert in-between array in case we have punctuation
-    for (var inputLineArrayIndex = 0, inputLineArrayLength = inputLineArray.length;
-      inputLineArrayIndex < inputLineArrayLength; inputLineArrayIndex++)
-    {
-      
-    }
+    
+    var inputLineArray = this.tokenizeBasedOnSpaceAndPunctuation(inputLine);
+    var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
 
     for (var inputLineArrayIndex = 0, inputLineArrayLength = inputLineArray.length;
       inputLineArrayIndex < inputLineArrayLength; inputLineArrayIndex++)
@@ -189,7 +218,13 @@ SpeechAnalyzer.prototype =
         }
         keywordsUsed[currentWord] = currentWord;
       }
-      // TODO: reset keystrack if "," or "." is encountered!
+
+      // reset keystrack if punctuation encountered
+      if (punctuationRegEx.test(currentWord))
+      {
+        keywordRulesStack = [];
+        keywordsUsed = {};
+      }
     }
 
     for (var keywordStackIndex = 0, keywordStackLength = keywordRulesStack.length;
