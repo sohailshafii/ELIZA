@@ -200,7 +200,7 @@ SpeechAnalyzer.prototype =
     {
       var currentWordNormalCase = inputLineArray[inputLineArrayIndex];
       var currentWord = currentWordNormalCase.toUpperCase();
-      
+      console.log("word: " + currentWord);
       // if keyword encountered
       if (this.keywordToKeywordRules.hasOwnProperty(currentWord))
       {
@@ -219,6 +219,7 @@ SpeechAnalyzer.prototype =
           
           if (newRankingIsGreater)
           {
+            console.log("new better keyword, hence new ranking " + keywordRules.ranking);
             // highest ranked items at beginning
             currentMaxRanking = keywordRules.ranking;
             keywordRulesStack.splice(0, 0, keywordRules);
@@ -241,11 +242,13 @@ SpeechAnalyzer.prototype =
     }
 
     console.log("Line after keyword processing and all replacements: " + inputLine);
+    //console.log("keystack: " + keywordRulesStack);
     for (var keywordStackIndex = 0, keywordStackLength = keywordRulesStack.length;
       keywordStackIndex < keywordStackLength; keywordStackIndex++)
     {
       var currentKeywordRules = keywordRulesStack[keywordStackIndex];
       var currentAttempt = currentKeywordRules.attemptReconstruction(inputLine);
+      console.log("keyword " + currentKeywordRules.keyword + " attempt " + currentAttempt);
       if (currentAttempt !== null)
       {
         outputLine = currentAttempt;

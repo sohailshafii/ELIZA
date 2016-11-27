@@ -41,17 +41,32 @@ ScriptReader.prototype =
           if (matchTrimmedSpaces.length > 0)
           {
           	console.log("Match trimmed spaces: " + matchTrimmedSpaces);
-            // substitution
-            if (matchTrimmedSpaces.includes("="))
+            // substitution rule
+            if (this.currentKeyword == null)
             {
-            	var parsedViaEqual = matchTrimmedSpaces.split("=");
-            	this.currentKeyword = parsedViaEqual[0].replace(/(^\s+|\s+$)/g,'');
-            	this.currentReplacementWord = parsedViaEqual[1].replace(/(^\s+|\s+$)/g,'');
-            	console.log(this.currentKeyword + " " + this.currentReplacementWord);
-            }
-			else if (this.currentKeyword == null)
-            {
-              this.currentKeyword = matchTrimmedSpaces;
+              // grab rank, if it specified
+              var keywordPhraseParsed = matchTrimmedSpaces.split(" ");
+              var equalsExists = false;
+              for (var parsedIndex = 0, parsedLength = keywordPhraseParsed.length;
+      			parsedIndex < parsedLength; parsedIndex++) {
+              	var currentParsedToken = keywordPhraseParsed[parsedIndex];
+              	if (/^\d./.test(currentParsedToken))
+              	{
+              		this.currentRank = parseInt(currentParsedToken);
+              	}
+              	else if (/=/.test(currentParsedToken))
+              	{
+              		equalsExists = true;
+              	}
+              }
+
+              if (equalsExists)
+              {
+              	this.currentReplacementWord = keywordPhraseParsed[1].replace(/(^\s+|\s+$)/g,'');
+              }
+              this.currentKeyword = keywordPhraseParsed[0].replace(/(^\s+|\s+$)/g,'');
+
+          	  console.log(this.currentKeyword + " " + this.currentReplacementWord + " " + this.currentRank);
             }
             else if (this.curentDecompRule == null)
             {
@@ -82,14 +97,16 @@ ScriptReader.prototype =
       if (this.openParenCount == 0)
       {
         this.currentKeyword = null;
+        this.currentReplacementWord = null;
+        this.currentRank = 0;
       }
       // when we have closed all but one parenthesis,
       // we have to look for reconstruction again
       if (this.openParenCount == 1)
       {
-        console.log(this.currentKeyword + ", decomp rules for " + this.curentDecompRule + ": " +
+        console.log(this.currentKeyword + ", decomp rules for " + this.curentDecompRule + " are " +
           this.currentReconstructions);
-        speechAnalyzer.addDecompRules(this.currentKeyword, this.currentReplacementWord, 1, 
+        speechAnalyzer.addDecompRules(this.currentKeyword, this.currentReplacementWord, this.currentRank, 
         	this.curentDecompRule, this.currentReconstructions);
         this.curentDecompRule = null;
         this.currentReconstructions = [];
@@ -114,6 +131,7 @@ ScriptReader.prototype =
       this.openParenCount = 0;
       this.currentKeyword = null;
       this.currentReplacementWord = null;
+      this.currentRank = 0;
       this.curentDecompRule = "";
       this.currentReconstructions = [];
       this.lastLineHadClosingParen = false;
