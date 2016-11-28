@@ -12,6 +12,18 @@ that apologies are not required.)))
 (DONT = DON'T)
 (CANT = CAN'T)
 (WONT = WON'T)
+(REMEMBER 5
+((0 YOU REMEMBER 0) (Do you often think of 3?)
+(Does thinking of 3 bring anything else to mind?)
+(What else dod you remember?)
+(Why do you remember 3 just now?)
+(What in the present situation reminds you of 3?)
+(What is the connection between me and 3?))
+((0 DO I REMEMBER 0) (Did you thinkg I would forget 4?)
+(Why do you think I should recall 4 now?)
+(What about 4?) (=WHAT) (You mentioned 4?))
+((0) (NEWKEY)))
+
 #(DREAMS = DREAM 3 (=DREAM))
 (COMPUTER 50 ((0) (Do computers worry you?)
 (Why do you mention computers?) (What do you think machines

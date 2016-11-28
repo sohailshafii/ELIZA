@@ -41,7 +41,7 @@ KeywordRules.prototype =
     {
       var currentToken = decompositionArray[tokenIndex];
       // space before second token
-      if (currentToken == 1)
+      if (tokenIndex >= 1)
       {
         decompositionRegExString += " ";
       }
