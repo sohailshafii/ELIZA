@@ -23,3 +23,6 @@ do you think about machines?)))
 (What answer would please you the most?)
 (What do you think?) (What comes to your mind when you ask that?) (Have you asked such a question before?)
 (Have you asked anyone else?)))
+
+(HOW (=WHAT))
+(WHEN (=WHAT))

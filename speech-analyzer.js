@@ -45,7 +45,7 @@ KeywordRules.prototype =
       {
         decompositionRegExString += " ";
       }
-      console.log("current decomp token: " + currentToken);
+
       if (/^\d+/.test(currentToken))
       {
         if (currentToken == 0)
@@ -83,7 +83,7 @@ KeywordRules.prototype =
     for (var decomp in this.decompToReconstruction)
     {
       var decompRegEx = new RegExp(decomp);
-      if (decompRegEx.test(inputLine))
+      if (decompRegEx.test(inputLine.toUpperCase()))
       {
         // create a reconstruction
         var inputLineParsed = inputLine.split(" ");
@@ -133,12 +133,13 @@ function SpeechAnalyzer(){
   this.keywordToKeywordRules = { };
 }
 
+// TODO: modularize more
 SpeechAnalyzer.prototype =
 {
   addDecompRules: function(keyword, replacementKeyword, ranking, 
   	decompositionString, reconstructionStrings)
   {
-    if (keyword == null) return;
+    if (keyword === null) return;
     if (!this.keywordToKeywordRules.hasOwnProperty(keyword))
     {
       this.keywordToKeywordRules[keyword] = new KeywordRules();
@@ -149,6 +150,25 @@ SpeechAnalyzer.prototype =
     keywordRules.replacementKeyword = replacementKeyword;
     keywordRules.ranking = ranking;
     keywordRules.addDecompAndReconstructions(decompositionString, reconstructionStrings);
+  },
+
+  createDecompFromEquivalency: function(keyword, keywordAlias)
+  {
+    if (keywordAlias === null) return;
+    if (!this.keywordToKeywordRules.hasOwnProperty(keyword))
+    {
+      this.keywordToKeywordRules[keyword] = new KeywordRules();
+    }
+    var keywordRules = this.keywordToKeywordRules[keyword];
+    keywordRules.keyword = keyword;
+
+    if (this.keywordToKeywordRules.hasOwnProperty(keywordAlias))
+    {
+      var aliasKeywordRules = this.keywordToKeywordRules[keywordAlias];
+      keywordRules.replacementKeyword = aliasKeywordRules.replacementKeyword;
+      keywordRules.ranking = aliasKeywordRules.ranking;
+      keywordRules.decompToReconstruction = aliasKeywordRules.decompToReconstruction;
+    }
   },
 
   tokenizeBasedOnSpaceAndPunctuation: function(inputLine)

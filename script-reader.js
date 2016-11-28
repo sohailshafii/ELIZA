@@ -19,6 +19,13 @@ ScriptReader.prototype =
     return this.phraseRegEx.exec(snippet);
   },
 
+  getTokenAfterEquivalency: function(input) {
+    var equivalencyTest = new RegExp("=(\\w+)");
+    var test = equivalencyTest.exec(input);
+    if (test == null || test.length < 2) return null;
+    return test[1];
+  },
+
   analyzeScriptLine: function(line, speechAnalyzer) {
 
     for (var charIndex = 0, lineLength = line.length;
@@ -40,7 +47,7 @@ ScriptReader.prototype =
           var matchTrimmedSpaces = regExResult[0].replace(/(^\s+|\s+$)/g,'');
           if (matchTrimmedSpaces.length > 0)
           {
-          	console.log("Match trimmed spaces: " + matchTrimmedSpaces);
+            console.log("Match trimmed spaces: " + matchTrimmedSpaces);
             // substitution rule
             if (this.currentKeyword == null)
             {
@@ -48,29 +55,37 @@ ScriptReader.prototype =
               var keywordPhraseParsed = matchTrimmedSpaces.split(" ");
               var equalsExists = false;
               for (var parsedIndex = 0, parsedLength = keywordPhraseParsed.length;
-      			parsedIndex < parsedLength; parsedIndex++) {
-              	var currentParsedToken = keywordPhraseParsed[parsedIndex];
-              	if (/^\d./.test(currentParsedToken))
-              	{
-              		this.currentRank = parseInt(currentParsedToken);
-              	}
-              	else if (/=/.test(currentParsedToken))
-              	{
-              		equalsExists = true;
-              	}
+                parsedIndex < parsedLength; parsedIndex++) {
+                var currentParsedToken = keywordPhraseParsed[parsedIndex];
+                if (/^\d./.test(currentParsedToken))
+                {
+                  this.currentRank = parseInt(currentParsedToken);
+                }
+                else if (/=/.test(currentParsedToken))
+                {
+                  equalsExists = true;
+                }
               }
 
               if (equalsExists)
               {
-              	this.currentReplacementWord = keywordPhraseParsed[1].replace(/(^\s+|\s+$)/g,'');
+                this.currentReplacementWord = keywordPhraseParsed[1].replace(/(^\s+|\s+$)/g,'');
               }
               this.currentKeyword = keywordPhraseParsed[0].replace(/(^\s+|\s+$)/g,'');
-
-          	  console.log(this.currentKeyword + " " + this.currentReplacementWord + " " + this.currentRank);
             }
             else if (this.curentDecompRule == null)
             {
-              this.curentDecompRule = matchTrimmedSpaces;
+              // if = exists, it's an equivalency
+              var equivalentKeyword = this.getTokenAfterEquivalency(matchTrimmedSpaces);
+              if (equivalentKeyword != null)
+              {
+                speechAnalyzer.createDecompFromEquivalency(this.currentKeyword, 
+                  equivalentKeyword);
+              }
+              else
+              {
+                this.curentDecompRule = matchTrimmedSpaces;
+              }
             }
             else
             {
@@ -104,10 +119,8 @@ ScriptReader.prototype =
       // we have to look for reconstruction again
       if (this.openParenCount == 1)
       {
-        console.log(this.currentKeyword + ", decomp rules for " + this.curentDecompRule + " are " +
-          this.currentReconstructions);
         speechAnalyzer.addDecompRules(this.currentKeyword, this.currentReplacementWord, this.currentRank, 
-        	this.curentDecompRule, this.currentReconstructions);
+          this.curentDecompRule, this.currentReconstructions);
         this.curentDecompRule = null;
         this.currentReconstructions = [];
       }
