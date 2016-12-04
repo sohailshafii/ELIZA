@@ -104,8 +104,12 @@ KeywordRules.prototype =
 
         // create a reconstruction
         var reconstructionToBeUsed = this.decompToReconstruction[decomp].getNextReconstruction();
+
         if (reconstructionToBeUsed !== null)
         {
+          // if we encounter NEWKEY, don't try this keyword anymore
+          if (reconstructionToBeUsed == "NEWKEY") return null;
+
           reconstructedLine = "";
           for (var tokenIndex = 0, numTokens = reconstructionToBeUsed.length;
             tokenIndex < numTokens; tokenIndex++)
