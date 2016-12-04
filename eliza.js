@@ -1,20 +1,20 @@
 var readLine = require('readline');
 var scriptReaderModule = require('./script-reader');
 var scriptReader = scriptReaderModule.refToScriptReader;
-var speechAnalyzerModule = require('./speech-analyzer');
-var speechAnalyzer = speechAnalyzerModule.refToSpeechAnalyzer;
+var speechEngineModule = require('./speech-engine');
+var speechEngine = speechEngineModule.refToSpeechEngine;
 var readLineInterface = readLine.createInterface(process.stdin, process.stdout, null);
 var prefix = '>';
 
 
-var speechAnalyzer = new speechAnalyzer();
+var speechEngine = new speechEngine();
 
 scriptReader = new scriptReader("./elizaScript.txt");
-scriptReader.readFile(speechAnalyzer);
+scriptReader.readFile(speechEngine);
 
 readLineInterface.on('line', function(line) {
   
-  console.log(speechAnalyzer.analyzeInputLine(line));
+  console.log(speechEngine.analyzeInputLine(line));
 
   readLineInterface.setPrompt(prefix, prefix.length);
   readLineInterface.prompt();
@@ -23,6 +23,6 @@ readLineInterface.on('line', function(line) {
   process.exit(0);
 });
 
-console.log(scriptReader.getRandomIntroLine());
+console.log(speechEngine.getRandomIntroLine());
 readLineInterface.setPrompt(prefix, prefix.length);
 readLineInterface.prompt();
