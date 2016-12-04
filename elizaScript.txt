@@ -12,10 +12,11 @@ that apologies are not required.)))
 (DONT = DON'T)
 (CANT = CAN'T)
 (WONT = WON'T)
+
 (REMEMBER 5
 ((0 YOU REMEMBER 0) (Do you often think of 3?)
 (Does thinking of 3 bring anything else to mind?)
-(What else dod you remember?)
+(What else do you remember?)
 (Why do you remember 3 just now?)
 (What in the present situation reminds you of 3?)
 (What is the connection between me and 3?))

@@ -35,6 +35,8 @@ KeywordRules.prototype =
     // spaces
     var decompositionArray = decompositionString.split(" ");
     var decompositionRegExString = "^";
+    var nonPunctuation = "([^.,\/#!?$%\\^&\\*;:{}=\\-_`~()]+)";
+
     // create regex out of tokens in decomposition
     for (var tokenIndex = 0, numTokens = decompositionArray.length;
       tokenIndex < numTokens; tokenIndex++)
@@ -48,17 +50,25 @@ KeywordRules.prototype =
 
       if (/^\d+/.test(currentToken))
       {
-        if (currentToken == 0)
+        var numWords = parseInt(currentToken);
+        // use groups to split decomposition into several items
+        // an indifinite number of words
+        if (numWords == 0)
         {
-          decompositionRegExString += ".*";
+          decompositionRegExString += nonPunctuation;
         }
         else {
-          decompositionRegExString += ".{" + currentToken + "}";
+          // a certain number of words separated by sapces
+          for (var wordIndex = 0; wordIndex < numWords; wordIndex++)
+          {
+            if (wordIndex > 0) decompositionRegExString += " ";
+            decompositionRegExString += nonPunctuation;
+          }
         }
       }
       else 
       {
-        decompositionRegExString += currentToken;
+        decompositionRegExString += "(" + currentToken + ")";
       }
     }
 
@@ -80,13 +90,19 @@ KeywordRules.prototype =
   attemptReconstruction: function(inputLine)
   {
     var reconstructedLine = null;
+    var numberRegEx = /^(\d+)/;
+    var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
+
     for (var decomp in this.decompToReconstruction)
     {
       var decompRegEx = new RegExp(decomp);
-      if (decompRegEx.test(inputLine.toUpperCase()))
+      var decompPasses = decompRegEx.test(inputLine.toUpperCase());
+      console.log("decomp to try: " + decompRegEx);
+      if (decompPasses)
       {
+        var decompResult = decompRegEx.exec(inputLine.toUpperCase());
+
         // create a reconstruction
-        var inputLineParsed = inputLine.split(" ");
         var reconstructionToBeUsed = this.decompToReconstruction[decomp].getNextReconstruction();
         if (reconstructionToBeUsed !== null)
         {
@@ -95,11 +111,21 @@ KeywordRules.prototype =
             tokenIndex < numTokens; tokenIndex++)
           {
             var currentToken = reconstructionToBeUsed[tokenIndex];
+            console.log("Current token: " + currentToken);
             if (tokenIndex > 0) reconstructedLine += " ";
             // if it's a number, look up token in original line
-            if (/^\d./.test(currentToken))
+            if (numberRegEx.test(currentToken))
             {
-              reconstructedLine += inputLineParsed[parseInt(currentToken)];
+              var numberMatch = numberRegEx.exec(currentToken)[1];
+              // first token of deconstruction is decompResult[1]; remaining tokens follow
+              var realToken = parseInt(numberMatch) + 1;
+              reconstructedLine += decompResult[realToken].toLowerCase();
+              // add any punctuation
+              var punctuationMatch = punctuationRegEx.exec(currentToken);
+              if (punctuationMatch !== null)
+              {
+                reconstructedLine += punctuationMatch;
+              }
             }
             else {
               reconstructedLine += currentToken;
@@ -234,7 +260,7 @@ SpeechAnalyzer.prototype =
         // include keyword in stack only once
         if (!keywordsUsed.hasOwnProperty(currentWord))
         {
-          console.log("keyword..." + currentWord);
+          console.log("keyword..." + currentWord + " " +  keywordRules.ranking);
           var newRankingIsGreater = keywordRules.ranking > currentMaxRanking;
           
           if (newRankingIsGreater)

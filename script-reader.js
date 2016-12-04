@@ -53,11 +53,13 @@ ScriptReader.prototype =
             {
               // grab rank, if it specified
               var keywordPhraseParsed = matchTrimmedSpaces.split(" ");
+              
               var equalsExists = false;
               for (var parsedIndex = 0, parsedLength = keywordPhraseParsed.length;
                 parsedIndex < parsedLength; parsedIndex++) {
                 var currentParsedToken = keywordPhraseParsed[parsedIndex];
-                if (/^\d./.test(currentParsedToken))
+
+                if (/^\d+/.test(currentParsedToken))
                 {
                   this.currentRank = parseInt(currentParsedToken);
                 }
