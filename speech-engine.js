@@ -15,7 +15,7 @@ SpeechEngine.prototype =
     var numLines = lines.length;
     var commentRegEx = /#.*/;
     var introRegEx = /Intro:\s*(.+)/;
-    var replacementRegEx = /replacement:\s*(.+)\s+(.+)\s*/;
+    var replacementRegEx = /pre-replacement:\s*(.+)\s+(.+)\s*/;
 
     this.currentKeyword = null;
     this.currentRank = 0;
@@ -42,7 +42,6 @@ SpeechEngine.prototype =
         {
           this.keywordToReplacementKeyword[keyword] = replacementKeyword;
         }
-        console.log("replacement: " + keyword + " " + replacementKeyword);
       }
       else 
       {
@@ -69,32 +68,40 @@ SpeechEngine.prototype =
       var keywordPhrase = keywordTest[1];
       // if it contains a number, isolate that
       var rankRegExTest = /([^\d\s]+)\s+(\d+)/.exec(keywordPhrase);
+      // equivalency
+      var equivRegExTest = /([^\d\s]+)\s*==\s*([^\d\s]+)/.exec(keywordPhrase);
       this.currentRank = 0;
-      if (rankRegExTest != null)
+
+      if (equivRegExTest != null)
       {
-        this.currentKeyword = rankRegExTest[1];
-        this.currentRank = rankRegExTest[2];
+        this.currentKeyword = equivRegExTest[1];
+        this.createDecompFromEquivalency(this.currentKeyword, equivRegExTest[2]);
       }
-      else 
-        this.currentKeyword = keywordPhrase.replace(trimmedSpacesRegEx,'');
-      console.log("keyword: " + this.currentKeyword + " " + this.currentRank);
+      else
+      {
+        if (rankRegExTest != null)
+        {
+          this.currentKeyword = rankRegExTest[1];
+          this.currentRank = rankRegExTest[2];
+        }
+        else 
+          this.currentKeyword = keywordPhrase.replace(trimmedSpacesRegEx,'');
+        this.makeNewKeywordRules(this.currentKeyword, this.currentRank);
+      }
     }
     else if (decompTest != null)
     {
       this.curentDecompRule = decompTest[1].replace(trimmedSpacesRegEx,'');
-      console.log("decomp: " + this.curentDecompRule + "-");
     }
     else if (reassemblyTest != null)
     {
       var reconstruction = reassemblyTest[1].replace(trimmedSpacesRegEx, '');
       this.currentReconstructions.push(reconstruction);
-      console.log("reassembly: " + reconstruction + "-");
     }
     else if (endOfDecomp)
     {
-      console.log("add decomp " + endOfDecomp);
-      this.addDecompRules(this.currentKeyword, this.currentRank, 
-        this.curentDecompRule, this.currentReconstructions);
+      this.addDecompRules(this.currentKeyword, this.curentDecompRule, 
+        this.currentReconstructions);
       this.currentReconstructions = [];
     }
     else if (endOfKeyword)
@@ -112,32 +119,31 @@ SpeechEngine.prototype =
     return this.introductoryLines[randomIndex];
   },
 
-
-  addDecompRules: function(keyword, ranking, decompositionString, 
-    reconstructionStrings)
+  makeNewKeywordRules: function(keyword, ranking)
   {
     if (keyword === null) return;
     if (!this.keywordToKeywordRules.hasOwnProperty(keyword))
     {
-      this.keywordToKeywordRules[keyword] = new keywordRulesRef();
+      this.keywordToKeywordRules[keyword] = new keywordRulesRef(keyword, ranking);
     }
+  },
 
+  addDecompRules: function(keyword, decompositionString, 
+    reconstructionStrings)
+  {
     var keywordRules = this.keywordToKeywordRules[keyword];
-    keywordRules.keyword = keyword;
-    keywordRules.ranking = ranking;
-    keywordRules.addDecompAndReconstructions(decompositionString, reconstructionStrings);
+    keywordRules.addDecompAndReconstructions(this.keywordToKeywordRules, decompositionString, 
+      reconstructionStrings);
   },
 
   createDecompFromEquivalency: function(keyword, keywordAlias)
   {
-    if (keywordAlias === null) return;
+    if (keywordAlias === null || keyword === null) return;
     if (!this.keywordToKeywordRules.hasOwnProperty(keyword))
     {
-      this.keywordToKeywordRules[keyword] = new keywordRulesRef();
+      this.keywordToKeywordRules[keyword] = new keywordRulesRef(keyword, 0);
     }
     var keywordRules = this.keywordToKeywordRules[keyword];
-    keywordRules.keyword = keyword;
-
     if (this.keywordToKeywordRules.hasOwnProperty(keywordAlias))
     {
       var aliasKeywordRules = this.keywordToKeywordRules[keywordAlias];
@@ -190,8 +196,6 @@ SpeechEngine.prototype =
     var inputLineArray = this.tokenizeBasedOnSpaceAndPunctuation(inputLine);
     var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
 
-    console.log("keywords: " + this.keywordToKeywordRules);
-
     for (var inputLineArrayIndex = 0, inputLineArrayLength = inputLineArray.length;
       inputLineArrayIndex < inputLineArrayLength; inputLineArrayIndex++)
     {
@@ -210,16 +214,14 @@ SpeechEngine.prototype =
       if (this.keywordToKeywordRules.hasOwnProperty(currentWord))
       {
         var keywordRules = this.keywordToKeywordRules[currentWord];
-        console.log("keyword rules: " + keywordRules);
+        
         // include keyword in stack only once
         if (!keywordsUsed.hasOwnProperty(currentWord))
         {
-          console.log("keyword..." + currentWord + " " +  keywordRules.ranking);
           var newRankingIsGreater = keywordRules.ranking > currentMaxRanking;
           
           if (newRankingIsGreater)
           {
-            console.log("new better keyword, hence new ranking " + keywordRules.ranking);
             // highest ranked items at beginning
             currentMaxRanking = keywordRules.ranking;
             keywordRulesStack.splice(0, 0, keywordRules);
@@ -259,14 +261,14 @@ SpeechEngine.prototype =
     return outputLine;
   },
 
-  barf: function()
+  print: function()
   {
     if (this.keywordToKeywordRules === null) return;
     for (var key in this.keywordToKeywordRules)
     {
       if (!this.keywordToKeywordRules.hasOwnProperty(key)) return;
       console.log("Keyword: " + key);
-      this.keywordToKeywordRules[key].barf();
+      this.keywordToKeywordRules[key].print();
     }
   }
 };

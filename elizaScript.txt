@@ -4,46 +4,74 @@ Intro: Hi, I'm Dr. ELIZA. Let's get this over with; what's your problem?
 Intro: How do you do? Please tell me your problem.
 Intro: What ails you?
 # end of introductory messages
-replacement: DONT DON'T
-replacement: CANT CAN'T
-replacement: WONT WON'T
+pre-replacement: DONT DON'T
+pre-replacement: CANT CAN'T
+pre-replacement: WONT WON'T
+post-replacement: my your
+post-replacement: your my
 
 key: SORRY
-  decomp: 0
-    reassembly: Please don't apologize.
-    reassembly: Apologies are not necessary.
-    reassembly: What feelings do you have when you apologize?
-    reassembly: I've told you that apologies are not required.
-  enddecomp
+	decomp: 0
+		reassembly: Please don't apologize.
+		reassembly: Apologies are not necessary.
+		reassembly: What feelings do you have when you apologize?
+		reassembly: I've told you that apologies are not required.
+	enddecomp
 endkey
 
-#(DONT = DON'T)
-#(CANT = CAN'T)
-#(WONT = WON'T)
+key: IF 3
+	decomp: 0 IF 0
+		reassembly: Do you think it's likely that 2?
+		reassembly: Do you wish that 2?
+		reassembly: What do you think about 2?
+		reassembly: Really, if 2?
+	enddecomp
+endkey
 
-#(REMEMBER 5
-#((0 YOU REMEMBER 0) (Do you often think of 3?)
-#(Does thinking of 3 bring anything else to mind?)
-#(What else do you remember?)
-#(Why do you remember 3 just now?)
-#(What in the present situation reminds you of 3?)
-#(What is the connection between me and 3?))
-#((0 DO I REMEMBER 0) (Did you thinkg I would forget 4?)
-#(Why do you think I should recall 4 now?)
-#(What about 4?) (=WHAT) (You mentioned 4?))
-#((0) (NEWKEY)))
+key: WHAT
+	decomp: 0
+		reassembly: Why do you ask?
+		reassembly: Does that question interest you?
+		reassembly: What is it really want to know?
+		reassembly: Are such questions much on your mind?
+		reassembly: What answer would please you the most?
+		reassembly: What do you think?
+		reassembly: What comes to your mind when you ask that?
+		reassembly: Have you asked such a question before?
+		reassembly: Have you asked anyone else?
+	enddecomp
+endkey
+
+key: REMEMBER 5
+	decomp: 0 YOU REMEMBER 0
+		reassembly: Do you often think of 3?
+		reassembly: Does thinking of 3 bring anything else to mind?
+		reassembly: What else do you remember?
+		reassembly: Why do you remember 3 just now?
+		reassembly: What in the present situation reminds you of 3?
+		reassembly: What is the connection between me and 3?
+	enddecomp
+	decomp: 0 DO I REMEMBER 0
+		reassembly: Did you think I would forget 4?
+		reassembly: Why do you think I should recall 4 now?
+		reassembly: What about 4?
+		reassembly: = WHAT
+		reassembly: You mentioned 4?
+	enddecomp
+	decomp: 0
+		reassembly: NEWKEY
+	enddecomp
+endkey
+
+key: HOW == WHAT
+endkey
+
+key: WHEN == WHAT
+endkey
+
 
 #(DREAMS = DREAM 3 (=DREAM))
 #(COMPUTER 50 ((0) (Do computers worry you?)
 #(Why do you mention computers?) (What do you think machines
 #have to do with your problem?) (Don't you think computers can help people?) (What about machines worries you?) (What
 #do you think about machines?)))
-
-#(WHAT ((0) (Why do you ask?) (Does that question interest you?) (What is it really want to know?)
-#(Are such questions much on your mind?)
-#(What answer would please you the most?)
-#(What do you think?) (What comes to your mind when you ask that?) (Have you asked such a question before?)
-#(Have you asked anyone else?)))
-
-#(HOW (=WHAT))
-#(WHEN (=WHAT))

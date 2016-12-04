@@ -18,7 +18,7 @@ ScriptReader.prototype =
     {
       console.log("Script read error: ", e.stack);
     }
-    speechEngine.barf();
+    speechEngine.print();
   }
 };
 
