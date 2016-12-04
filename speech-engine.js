@@ -5,6 +5,7 @@ var replaceKeywordRef = keywordRulesModule.refToReplaceKeyword;
 function SpeechEngine(){
   this.keywordToKeywordRules = { };
   this.keywordToReplacementKeyword = { };
+  this.keywordToPostReplacementKeyword = { };
   this.introductoryLines = [];
 }
 
@@ -16,6 +17,7 @@ SpeechEngine.prototype =
     var commentRegEx = /#.*/;
     var introRegEx = /Intro:\s*(.+)/;
     var replacementRegEx = /pre-replacement:\s*(.+)\s+(.+)\s*/;
+    var postReplacementRegEx = /post-replacement:\s*(.+)\s+(.+)\s*/;
 
     this.currentKeyword = null;
     this.currentRank = 0;
@@ -29,6 +31,7 @@ SpeechEngine.prototype =
 
       var introLineTest = introRegEx.exec(currentLine);
       var replacementTest = replacementRegEx.exec(currentLine);
+      var postReplacementTest = postReplacementRegEx.exec(currentLine);
 
       if (introLineTest != null)
       {
@@ -38,6 +41,15 @@ SpeechEngine.prototype =
       {
         var keyword = replacementTest[1],
           replacementKeyword = replacementTest[2];
+        if (!this.keywordToPostReplacementKeyword.hasOwnProperty(keyword))
+        {
+          this.keywordToPostReplacementKeyword[keyword] = replacementKeyword;
+        }
+      }
+      else if (postReplacementTest != null)
+      {
+        var keyword = postReplacementTest[1],
+          replacementKeyword = postReplacementTest[2];
         if (!this.keywordToReplacementKeyword.hasOwnProperty(keyword))
         {
           this.keywordToReplacementKeyword[keyword] = replacementKeyword;
@@ -69,7 +81,7 @@ SpeechEngine.prototype =
       // if it contains a number, isolate that
       var rankRegExTest = /([^\d\s]+)\s+(\d+)/.exec(keywordPhrase);
       // equivalency
-      var equivRegExTest = /([^\d\s]+)\s*==\s*([^\d\s]+)/.exec(keywordPhrase);
+      var equivRegExTest = /([^\d\s]+)\s*=\s*([^\d\s]+)/.exec(keywordPhrase);
       this.currentRank = 0;
 
       if (equivRegExTest != null)
@@ -257,6 +269,8 @@ SpeechEngine.prototype =
         break;
       }
     }
+
+    // do post-replacements here TODO
 
     return outputLine;
   },

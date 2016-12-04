@@ -63,15 +63,31 @@ key: REMEMBER 5
 	enddecomp
 endkey
 
-key: HOW == WHAT
+key: COMPUTER 50
+	decomp: 0
+		reassembly: Do computers worry you?
+		reassembly: Why do you mention computers?
+		reassembly: What do you think machines have to do with your problem?
+		reassembly: Don't you think computers can help people?
+		reassembly: (What about machines worries you?
+		reassembly: What do you think about machines?
+	enddecomp
 endkey
 
-key: WHEN == WHAT
+key: HOW = WHAT
 endkey
 
+key: WHEN = WHAT
+endkey
+
+key: MACHINE = COMPUTER
+endkey
+
+key: MACHINES = COMPUTER
+endkey
+
+key: COMPUTERS = COMPUTER
+endkey
 
 #(DREAMS = DREAM 3 (=DREAM))
-#(COMPUTER 50 ((0) (Do computers worry you?)
-#(Why do you mention computers?) (What do you think machines
-#have to do with your problem?) (Don't you think computers can help people?) (What about machines worries you?) (What
-#do you think about machines?)))
+
