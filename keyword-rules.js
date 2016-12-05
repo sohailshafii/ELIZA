@@ -60,7 +60,8 @@ KeywordRules.prototype =
     var decompositionArray = decompositionString.split(" ");
     var decompositionRegExString = "^";
     // all regexes are separated into groups
-    var nonPunctuation = "([^.,\/#!?$%\\^&\\*;:{}=\\-_`~()]+)";
+    var nonPunctuation = "([^.,\/#!?$%\\^&\\*;:{}=\\-_`~()]*)";
+    var spaces = "\\s*";
 
     // create regex out of tokens in decomposition
     for (var tokenIndex = 0, numTokens = decompositionArray.length;
@@ -70,7 +71,7 @@ KeywordRules.prototype =
       // space before second token
       if (tokenIndex >= 1)
       {
-        decompositionRegExString += " ";
+        decompositionRegExString += spaces;
       }
 
       if (/^\d+/.test(currentToken))
@@ -86,7 +87,7 @@ KeywordRules.prototype =
           // a certain number of words separated by sapces
           for (var wordIndex = 0; wordIndex < numWords; wordIndex++)
           {
-            if (wordIndex > 0) decompositionRegExString += " ";
+            if (wordIndex > 0) decompositionRegExString += spaces;
             decompositionRegExString += nonPunctuation;
           }
         }
@@ -124,6 +125,7 @@ KeywordRules.prototype =
     var reconstructedLine = null;
     var numberRegEx = /^(\d+)/;
     var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
+    var trimmedSpacesRegEx = /(^\s+|\s+$)/g;
 
     for (var decomp in this.decompToReconstruction)
     {
@@ -132,6 +134,7 @@ KeywordRules.prototype =
       if (decompPasses)
       {
         var decompResult = decompRegEx.exec(inputLine.toUpperCase());
+        console.log("Decomp result: " + decompResult);
 
         // create a reconstruction
         var reconstructionToBeUsed = this.decompToReconstruction[decomp].getNextReconstruction();
@@ -164,8 +167,11 @@ KeywordRules.prototype =
               {
                 var numberMatch = numberRegEx.exec(currentToken)[1];
                 // first token of deconstruction is decompResult[1]; remaining tokens follow
-                var realToken = parseInt(numberMatch) + 1;
-                reconstructedLine += decompResult[realToken].toLowerCase();
+                var realTokenIndex = parseInt(numberMatch) + 1;
+                // trim any spaces at ends
+                var tokenUsed = decompResult[realTokenIndex].toLowerCase().replace(trimmedSpacesRegEx, '');
+                //trimmedSpacesRegEx = /(^\s+|\s+$)/g
+                reconstructedLine += tokenUsed;
                 // add any punctuation
                 var punctuationMatch = punctuationRegEx.exec(currentToken);
                 if (punctuationMatch !== null)

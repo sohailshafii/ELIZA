@@ -246,12 +246,10 @@ SpeechEngine.prototype =
     	 }
       }
 
-      // reset keystrack if punctuation encountered. but don't do it if it's the last
-      // word
-      if (punctuationRegEx.test(currentWord) && inputLineArrayIndex != inputLineArrayLength-1)
+      // if we hit punctuation, then stop if keystack is not empty
+      if (punctuationRegEx.test(currentWord) && keywordRulesStack.length > 0)
       {
-        keywordRulesStack = [];
-        keywordsUsed = {};
+        break;
       }
     }
 
