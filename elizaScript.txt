@@ -4,11 +4,29 @@ Intro: Hi, I'm Dr. ELIZA. Let's get this over with; what's your problem?
 Intro: How do you do? Please tell me your problem.
 Intro: What ails you?
 # end of introductory messages
-pre-replacement: DONT DON'T
-pre-replacement: CANT CAN'T
-pre-replacement: WONT WON'T
-post-replacement: my your
-post-replacement: your my
+pre-replacement: DONT=DON'T
+pre-replacement: CANT=CAN'T
+pre-replacement: WONT=WON'T
+pre-replacement: RECOLLECT=REMEMBER
+pre-replacement: RECALL=REMEMBER
+pre-replacement: DREAMT=DREAMED
+pre-replacement: DREAMS=DREAM
+pre-replacement: MAYBE=PERHAPS
+pre-replacement: CERTAINLY=YES
+pre-replacement: SAME=ALIKE
+pre-replacement: IDENTICAL=ALIKE
+pre-replacement: EQUIVALENT=ALIKE
+pre-replacement: WERE=WAS
+pre-replacement: ME=YOU
+pre-replacement: YOU'RE=YOU ARE
+pre-replacement: I'M=I AM
+pre-replacement: MYSELF=YOURSELF
+pre-replacement: YOURSELF=MYSELF
+pre-replacement: MOM=MOTHER
+pre-replacement: DAD=FATHER
+
+family: BELIEF=FEEL,THINK,BELIEVE,WISH
+family: FAMILY=FATHER,MOTHER,SISTER,BROTHER,WIFE,CHILDREN
 
 key: SORRY
 	decomp: 0
@@ -43,7 +61,7 @@ key: WHAT
 endkey
 
 key: REMEMBER 5
-	decomp: 0 YOU REMEMBER 0
+	decomp: 0 I REMEMBER 0
 		reassembly: Do you often think of 3?
 		reassembly: Does thinking of 3 bring anything else to mind?
 		reassembly: What else do you remember?
@@ -51,7 +69,7 @@ key: REMEMBER 5
 		reassembly: What in the present situation reminds you of 3?
 		reassembly: What is the connection between me and 3?
 	enddecomp
-	decomp: 0 DO I REMEMBER 0
+	decomp: 0 DO YOU REMEMBER 0
 		reassembly: Did you think I would forget 4?
 		reassembly: Why do you think I should recall 4 now?
 		reassembly: What about 4?
@@ -60,6 +78,29 @@ key: REMEMBER 5
 	enddecomp
 	decomp: 0
 		reassembly: NEWKEY
+	enddecomp
+endkey
+
+key: MY
+	memory
+	replace: YOUR
+	decomp: 0 YOUR 0
+		reassembly: Let's discuss further your 2.
+		reassembly: Earlier you said your 2.
+		reassembly: But your 2!!!
+		reassembly: Does that have anything to do with the fact that your 2?
+	enddecomp
+	decomp: 0 YOUR 0 /FAMILY 0
+		reassembly: Tell me more about your family.
+		reassembly: Who else in your family 4?
+		reassembly: Your 3?
+		reassembly: What else comes to mind when you think of your 3?
+	enddecomp
+	decomp: 0 YOUR 0
+		reassembly: Your 2?
+		reassembly: Why do you say your 2?
+		reassembly: Does that suggest anything else which belongs to you?
+		reassembly: Is it important to you that your 2?
 	enddecomp
 endkey
 
@@ -73,6 +114,27 @@ key: COMPUTER 50
 		reassembly: What do you think about machines?
 	enddecomp
 endkey
+
+key: DREAMED 4
+	decomp: 0 I DREAMED 0
+		reassembly: Really, 4?
+		reassembly: Have you ever fantasized 4 while you were awake?
+		reassembly: Have you dreamt 4 before?
+		reassembly: = DREAM
+	enddecomp
+endkey
+
+key: DREAM 3
+	decomp: 0
+		reassembly: What does that dream suggest to you?
+		reassembly: Do you dream often?
+		reassembly: What persons appear in your dreams?
+		reassembly: Don't you believe that dream has something to do with your problem?
+		reassembly: Maybe you think God visited you in your dream.
+		reassembly: NEWKEY
+	enddecomp
+endkey
+
 
 key: HOW = WHAT
 endkey

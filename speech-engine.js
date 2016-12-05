@@ -5,8 +5,10 @@ var replaceKeywordRef = keywordRulesModule.refToReplaceKeyword;
 function SpeechEngine(){
   this.keywordToKeywordRules = { };
   this.keywordToReplacementKeyword = { };
-  this.keywordToPostReplacementKeyword = { };
+  this.keywordToFamily = { };
   this.introductoryLines = [];
+
+  this.memoryStack = [];
 }
 
 SpeechEngine.prototype =
@@ -16,13 +18,15 @@ SpeechEngine.prototype =
     var numLines = lines.length;
     var commentRegEx = /#.*/;
     var introRegEx = /Intro:\s*(.+)/;
-    var replacementRegEx = /pre-replacement:\s*(.+)\s+(.+)\s*/;
-    var postReplacementRegEx = /post-replacement:\s*(.+)\s+(.+)\s*/;
+    var replacementRegEx = /pre-replacement:\s*(\S+)=(.+)\s*/;
+    var familyRegEx = /family: (\S+)=(.+)\s*/;
 
     this.currentKeyword = null;
     this.currentRank = 0;
     this.curentDecompRule = "";
     this.currentReconstructions = [];
+    this.replaceRule = null;
+    this.memoryFunction = false;
 
     for(var lineIndex = 0; lineIndex < numLines; lineIndex++) 
     {
@@ -31,7 +35,7 @@ SpeechEngine.prototype =
 
       var introLineTest = introRegEx.exec(currentLine);
       var replacementTest = replacementRegEx.exec(currentLine);
-      var postReplacementTest = postReplacementRegEx.exec(currentLine);
+      var familyTest = familyRegEx.exec(currentLine);
 
       if (introLineTest != null)
       {
@@ -41,18 +45,24 @@ SpeechEngine.prototype =
       {
         var keyword = replacementTest[1],
           replacementKeyword = replacementTest[2];
-        if (!this.keywordToPostReplacementKeyword.hasOwnProperty(keyword))
-        {
-          this.keywordToPostReplacementKeyword[keyword] = replacementKeyword;
-        }
-      }
-      else if (postReplacementTest != null)
-      {
-        var keyword = postReplacementTest[1],
-          replacementKeyword = postReplacementTest[2];
         if (!this.keywordToReplacementKeyword.hasOwnProperty(keyword))
         {
           this.keywordToReplacementKeyword[keyword] = replacementKeyword;
+        }
+      }
+      else if (familyTest != null)
+      {
+        var keyword = familyTest[1];
+        var parsedSynonyms = familyTest[2].split(",");
+
+        if (!this.keywordToFamily.hasOwnProperty(keyword))
+        {
+          this.keywordToFamily[keyword] = [];
+        }
+        for (var tokenIndex = 0, numTokens = parsedSynonyms.length;
+          tokenIndex < numTokens; tokenIndex++)
+        {
+          this.keywordToFamily[keyword].push(parsedSynonyms[tokenIndex]);
         }
       }
       else 
@@ -67,13 +77,16 @@ SpeechEngine.prototype =
     var lineTrimmedSpaces = line.replace(/(^\s+|\s+$)/g, '');
     var keywordRegEx = /key:\s*(.+)/, decompRegEx = /decomp:\s*(.+)/,
       reassemblyRegEx = /reassembly:\s*(.+)/,
+      replaceRegEx = /replace:\s*(.+)/,
       trimmedSpacesRegEx = /(^\s+|\s+$)/g;
 
     var keywordTest = keywordRegEx.exec(line);
     var decompTest = decompRegEx.exec(line);
+    var replaceTest = replaceRegEx.exec(line);
     var reassemblyTest = reassemblyRegEx.exec(line);
     var endOfDecomp = line.includes("enddecomp");
     var endOfKeyword = line.includes("endkey");
+    var foundMemoryLine = line.includes("memory");
 
     if (keywordTest != null)
     {
@@ -101,6 +114,10 @@ SpeechEngine.prototype =
         this.makeNewKeywordRules(this.currentKeyword, this.currentRank);
       }
     }
+    else if (replaceTest != null)
+    {
+      this.keywordToKeywordRules[this.currentKeyword].replacementKeyword = replaceTest[1].replace(trimmedSpacesRegEx, '');
+    }
     else if (decompTest != null)
     {
       this.curentDecompRule = decompTest[1].replace(trimmedSpacesRegEx,'');
@@ -113,14 +130,20 @@ SpeechEngine.prototype =
     else if (endOfDecomp)
     {
       this.addDecompRules(this.currentKeyword, this.curentDecompRule, 
-        this.currentReconstructions);
+        this.currentReconstructions, this.memoryFunction);
       this.currentReconstructions = [];
+      this.memoryFunction = false;
     }
     else if (endOfKeyword)
     {
       this.currentKeyword = null;
       this.currentRank = 0;
       this.curentDecompRule = null;
+      this.replaceRule = null;
+    }
+    else if (foundMemoryLine)
+    {
+      this.memoryFunction = true;
     }
   },
 
@@ -141,11 +164,11 @@ SpeechEngine.prototype =
   },
 
   addDecompRules: function(keyword, decompositionString, 
-    reconstructionStrings)
+    reconstructionStrings, memoryFunction)
   {
     var keywordRules = this.keywordToKeywordRules[keyword];
     keywordRules.addDecompAndReconstructions(this.keywordToKeywordRules, decompositionString, 
-      reconstructionStrings);
+      reconstructionStrings, memoryFunction);
   },
 
   createDecompFromEquivalency: function(keyword, keywordAlias)
@@ -208,19 +231,28 @@ SpeechEngine.prototype =
     var inputLineArray = this.tokenizeBasedOnSpaceAndPunctuation(inputLine);
     var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
 
+    // pre-replacements
+    // TODO: fix this case nonsense
+    for (var inputLineArrayIndex = 0, inputLineArrayLength = inputLineArray.length;
+      inputLineArrayIndex < inputLineArrayLength; inputLineArrayIndex++)
+    {
+      var currentWordNormalCase = inputLineArray[inputLineArrayIndex];
+      var currentWordUpperCase = inputLineArray[inputLineArrayIndex].toUpperCase();
+      if (this.keywordToReplacementKeyword.hasOwnProperty(currentWordUpperCase))
+      {
+        var replacement = this.keywordToReplacementKeyword[currentWordUpperCase];
+        inputLine = inputLine.replace(new RegExp(currentWordNormalCase), 
+          replacement);
+        inputLineArray[inputLineArrayIndex] = replacement;
+      }
+    }
+
     for (var inputLineArrayIndex = 0, inputLineArrayLength = inputLineArray.length;
       inputLineArrayIndex < inputLineArrayLength; inputLineArrayIndex++)
     {
       var currentWordNormalCase = inputLineArray[inputLineArrayIndex];
       var currentWord = currentWordNormalCase.toUpperCase();
       console.log("word: " + currentWord);
-
-      // unconditional replacement
-      if (this.keywordToReplacementKeyword.hasOwnProperty(currentWord))
-      {
-        inputLine = inputLine.replace(new RegExp(currentWordNormalCase), 
-          this.keywordToReplacementKeyword[currentWord].toLowerCase());
-      }
 
       // if keyword encountered
       if (this.keywordToKeywordRules.hasOwnProperty(currentWord))
@@ -254,21 +286,32 @@ SpeechEngine.prototype =
     }
 
     console.log("Line after keyword processing and all replacements: " + inputLine);
-    //console.log("keystack: " + keywordRulesStack);
-    for (var keywordStackIndex = 0, keywordStackLength = keywordRulesStack.length;
-      keywordStackIndex < keywordStackLength; keywordStackIndex++)
+
+    if (keywordRulesStack.length == 0 && this.memoryStack.length > 0)
     {
-      var currentKeywordRules = keywordRulesStack[keywordStackIndex];
-      var currentAttempt = currentKeywordRules.attemptReconstruction(inputLine);
-      console.log("keyword " + currentKeywordRules.keyword + " attempt " + currentAttempt);
-      if (currentAttempt !== null)
+      outputLine = this.memoryStack.pop();
+    }
+    else
+    {
+      //console.log("keystack: " + keywordRulesStack);
+      for (var keywordStackIndex = 0, keywordStackLength = keywordRulesStack.length;
+        keywordStackIndex < keywordStackLength; keywordStackIndex++)
       {
-        outputLine = currentAttempt;
-        break;
+        var currentKeywordRules = keywordRulesStack[keywordStackIndex];
+        var currentAttempt = currentKeywordRules.attemptReconstruction(inputLine);
+        console.log("keyword " + currentKeywordRules.keyword + " attempt " + currentAttempt);
+        if (currentAttempt !== null)
+        {
+          // memory function?
+          if (currentAttempt[1])
+          {
+            this.memoryStack.push(currentAttempt[0]);
+          }
+          outputLine = currentAttempt[0];
+          break;
+        }
       }
     }
-
-    // do post-replacements here TODO
 
     return outputLine;
   },

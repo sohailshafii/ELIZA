@@ -12,10 +12,12 @@ ReconstructionRule.prototype =
   }
 };
 
-function Reconstructions (reconstructionList)
+function Reconstructions (decompositionRegExString, reconstructionList, memoryFunction)
 {
+  this.decompositionRegExString = decompositionRegExString;
   this.reconstructionList = reconstructionList;
   this.nextReconstructionToBeUsed = 0;
+  this.memoryFunction = memoryFunction;
 }
 
 Reconstructions.prototype =
@@ -31,6 +33,7 @@ Reconstructions.prototype =
 
   print: function()
   {
+    console.log(this.decompositionRegExString + " " + this.memoryFunction);
     for (var reconsIndex = 0, numRecons = this.reconstructionList.length; reconsIndex < numRecons;
         reconsIndex++)
     {
@@ -43,14 +46,15 @@ function KeywordRules (keyword, ranking)
 {
   this.keyword = keyword;
   this.ranking = ranking;
-  this.decompToReconstruction = {};
+  this.replacementKeyword = null;
+  this.decompArray = [];
   this.allKeywordToKeywordRules = null;
 }
 
 KeywordRules.prototype =
 {
   addDecompAndReconstructions: function(allKeywordToKeywordRules,
-    decompositionString, reconstructionStrings, ranking)
+    decompositionString, reconstructionStrings, memoryFunction)
   {
     if (decompositionString === null || reconstructionStrings === null) return;
     this.allKeywordToKeywordRules = allKeywordToKeywordRules;
@@ -98,26 +102,25 @@ KeywordRules.prototype =
       }
     }
 
-    if (!this.decompToReconstruction.hasOwnProperty(decompositionRegExString))
+    var testEquivalency = /\s*=\s*(\S+)/;
+    // make a reg ex per reconstruction
+    var reconsArray = [];
+    for (var reconsIndex = 0, numRecons = reconstructionStrings.length; reconsIndex < numRecons;
+      reconsIndex++)
     {
-      var testEquivalency = /\s*=\s*(\S+)/;
-      // make a reg ex per reconstruction
-      var reconsArray = [];
-      for (var reconsIndex = 0, numRecons = reconstructionStrings.length; reconsIndex < numRecons;
-        reconsIndex++)
+      var currentReconstr = reconstructionStrings[reconsIndex];
+      var equivaResult = testEquivalency.exec(currentReconstr);
+      var equivalentKeyword = null;
+      if (equivaResult != null)
       {
-        var currentReconstr = reconstructionStrings[reconsIndex];
-        var equivaResult = testEquivalency.exec(currentReconstr);
-        var equivalentKeyword = null;
-        if (equivaResult != null)
-        {
-          equivalentKeyword = equivaResult[1];
-        }
-
-        reconsArray.push(new ReconstructionRule(currentReconstr.split(" "), equivalentKeyword));
+        equivalentKeyword = equivaResult[1];
       }
-      this.decompToReconstruction[decompositionRegExString] = new Reconstructions(reconsArray);
+
+      reconsArray.push(new ReconstructionRule(currentReconstr.split(" "), equivalentKeyword));
     }
+
+    this.decompArray.push(new Reconstructions(decompositionRegExString,
+      reconsArray, memoryFunction));
   },
 
   attemptReconstruction: function(inputLine)
@@ -127,17 +130,31 @@ KeywordRules.prototype =
     var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
     var trimmedSpacesRegEx = /(^\s+|\s+$)/g;
 
-    for (var decomp in this.decompToReconstruction)
+    inputLine = inputLine.toUpperCase();
+
+    if (this.replacementKeyword != null)
     {
-      var decompRegEx = new RegExp(decomp);
-      var decompPasses = decompRegEx.test(inputLine.toUpperCase());
+      console.log("pre: " + inputLine + " " + this.replacementKeyword);
+      // do necessary replacements...
+      inputLine = inputLine.replace(this.keyword, this.replacementKeyword);
+      console.log("post: " + inputLine);
+      var memoryFunction = false;
+    }
+
+    for (var decompIndex = 0, numDecomps = this.decompArray.length;
+      decompIndex < numDecomps; decompIndex++)
+    {
+      var decompRules = this.decompArray[decompIndex];
+
+      var decompRegEx = new RegExp(decompRules.decompositionRegExString);
+      var decompPasses = decompRegEx.test(inputLine);
       if (decompPasses)
       {
-        var decompResult = decompRegEx.exec(inputLine.toUpperCase());
-        console.log("Decomp result: " + decompResult);
+        var decompResult = decompRegEx.exec(inputLine);
+        console.log("Decomp result: " + decompResult + " decomp: " + decompRegEx);
 
         // create a reconstruction
-        var reconstructionToBeUsed = this.decompToReconstruction[decomp].getNextReconstruction();
+        var reconstructionToBeUsed = decompRules.getNextReconstruction();
        
         if (reconstructionToBeUsed !== null)
         {
@@ -184,21 +201,24 @@ KeywordRules.prototype =
               }
             }
           }
+          memoryFunction = decompRules.memoryFunction;
           break;
         }
       }
     }
 
-    return reconstructedLine;
+    return [reconstructedLine, memoryFunction];
   },
 
   print: function()
   {
-    for (var decomp in this.decompToReconstruction)
+    console.log("replacement: " + this.replacementKeyword);
+    for (var decompIndex = 0, numDecomps = this.decompArray.length;
+      decompIndex < numDecomps; decompIndex++)
     {
-      if (!this.decompToReconstruction.hasOwnProperty(decomp)) return;
-      console.log("Decomposition: " + decomp);
-      this.decompToReconstruction[decomp].print();
+      var decompRules = this.decompArray[decompIndex];
+      console.log("Decomposition: " + decompRules);
+      decompRules.print();
     }
   }
 };
