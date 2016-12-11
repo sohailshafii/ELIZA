@@ -168,7 +168,7 @@ SpeechEngine.prototype =
   {
     var keywordRules = this.keywordToKeywordRules[keyword];
     keywordRules.addDecompAndReconstructions(this.keywordToKeywordRules, decompositionString, 
-      reconstructionStrings, memoryFunction);
+      reconstructionStrings, memoryFunction, this.keywordToFamily);
   },
 
   createDecompFromEquivalency: function(keyword, keywordAlias)

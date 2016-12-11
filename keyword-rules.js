@@ -54,19 +54,25 @@ function KeywordRules (keyword, ranking)
 KeywordRules.prototype =
 {
   addDecompAndReconstructions: function(allKeywordToKeywordRules,
-    decompositionString, reconstructionStrings, memoryFunction)
+    decompositionString, reconstructionStrings, memoryFunction, keywordToFamily)
   {
     if (decompositionString === null || reconstructionStrings === null) return;
     this.allKeywordToKeywordRules = allKeywordToKeywordRules;
-
     // create a regex out of the decomposition. first split the decomposition into separated by
     // spaces
     var decompositionArray = decompositionString.split(" ");
-    var decompositionRegExString = "^";
+    var decompositionRegExArray = [];
     // all regexes are separated into groups
     var nonPunctuation = "([^.,\/#!?$%\\^&\\*;:{}=\\-_`~()]*)";
     var spaces = "\\s*";
 
+    // TODO: if one token satisfies family test, make multiple decompositions for
+    // these set of reconstructions
+    var familyTest = /(\/\S+)/;
+    // if there is a family keyword, need to make an array of reg exs
+    // if there are multiple, then a permutation of them need to be made
+
+    var currRegEx = "^";
     // create regex out of tokens in decomposition
     for (var tokenIndex = 0, numTokens = decompositionArray.length;
       tokenIndex < numTokens; tokenIndex++)
@@ -75,31 +81,80 @@ KeywordRules.prototype =
       // space before second token
       if (tokenIndex >= 1)
       {
-        decompositionRegExString += spaces;
+        currRegEx += spaces;
       }
 
-      if (/^\d+/.test(currentToken))
+      if (/\/\S+/.test(currentToken))
+      {
+        // use an extra slash to delineate with single slash tokens
+        currRegEx += "!+!/" + currentToken + "!+!";
+      }
+      else if (/^\d+/.test(currentToken))
       {
         var numWords = parseInt(currentToken);
         // use groups to split decomposition into several items
         // an indifinite number of words
         if (numWords == 0)
         {
-          decompositionRegExString += nonPunctuation;
+          currRegEx += nonPunctuation;
         }
         else {
-          // a certain number of words separated by sapces
+          // a certain number of words separated by spaces
           for (var wordIndex = 0; wordIndex < numWords; wordIndex++)
           {
             if (wordIndex > 0) decompositionRegExString += spaces;
-            decompositionRegExString += nonPunctuation;
+            currRegEx += nonPunctuation;
           }
         }
       }
       else 
       {
-        decompositionRegExString += "(" + currentToken + ")";
+        currRegEx += "(" + currentToken + ")";
       }
+    }
+
+    // find special tokens, like family nouns
+    var currRegExSpecialTokens = currRegEx.split("!+!");
+    var setupRegEx = function(specialTokens, keywordToFamily,
+      decompositionRegExArray) {
+      var foundAlternativeRegEx = false;
+
+      console.log("set up reg ex tokens: " + specialTokens);
+      for (var tokenIndex = 0, numTokens = specialTokens.length;
+        tokenIndex < numTokens; tokenIndex++)
+      {
+        var currentToken = specialTokens[tokenIndex];
+        // use two slashes in case there are tokens with one slash!
+        var testFamily = /\/\/(\S+)/.exec(currentToken);
+        console.log(currentToken + " test family: " + testFamily);
+        if (testFamily != null)
+        {
+          foundAlternativeRegEx = true;
+          var newSpecialTokens = specialTokens.slice();
+          var familyMembers = keywordToFamily[testFamily[1]];
+          console.log("family: " + testFamily[1] + " " + familyMembers);
+          for (var familyIndex = 0, numFamily = familyMembers.length;
+            familyIndex < numFamily; familyIndex++)
+          {
+            newSpecialTokens[tokenIndex] = familyMembers[familyIndex];
+            setupRegEx(newSpecialTokens, keywordToFamily,
+              decompositionRegExArray);
+          }
+        }
+      }
+      // if we didn't find alternative reg exs, just return joined version 
+      // of tokens as reg ex
+      if (!foundAlternativeRegEx)
+        decompositionRegExArray.push(specialTokens.join(''));
+    };
+
+    if (currRegExSpecialTokens.length > 1)
+    {
+      setupRegEx(currRegExSpecialTokens, keywordToFamily, decompositionRegExArray);
+    }
+    else 
+    {
+      decompositionRegExArray.push(currRegEx);
     }
 
     var testEquivalency = /\s*=\s*(\S+)/;
@@ -119,8 +174,13 @@ KeywordRules.prototype =
       reconsArray.push(new ReconstructionRule(currentReconstr.split(" "), equivalentKeyword));
     }
 
-    this.decompArray.push(new Reconstructions(decompositionRegExString,
-      reconsArray, memoryFunction));
+    // for each decomposition, assign the reconsarray to it...
+    for (var decompIndex = 0, numDecomps = decompositionRegExArray.length;
+        decompIndex < numDecomps; decompIndex++)
+    {
+      this.decompArray.push(new Reconstructions(decompositionRegExArray[decompIndex],
+        reconsArray, memoryFunction));
+    }
   },
 
   attemptReconstruction: function(inputLine)

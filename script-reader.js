@@ -5,7 +5,6 @@ function ScriptReader(scriptFileName) {
 
 ScriptReader.prototype =
 {
-
   readFile: function(speechEngine) {
     var fs = require('fs');
 
