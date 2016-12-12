@@ -3,6 +3,8 @@ Intro: Hello, I'm Dr. ELIZA. How do you do? Please tell me your problem.
 Intro: Hi, I'm Dr. ELIZA. Let's get this over with; what's your problem?
 Intro: How do you do? Please tell me your problem.
 Intro: What ails you?
+Intro: How do you do?
+Intro: Please tell me your problems.
 # Quit messages
 Quit: Have a nice day.
 Quit: Take care of yourself.
@@ -129,9 +131,9 @@ endkey
 
 key: DREAMED 4
 	decomp: 0 I DREAMED 0
-		reassembly: Really, 4?
-		reassembly: Have you ever fantasized 4 while you were awake?
-		reassembly: Have you dreamt 4 before?
+		reassembly: Really, 3?
+		reassembly: Have you ever fantasized 3 while you were awake?
+		reassembly: Have you dreamt 3 before?
 		reassembly: = DREAM
 	enddecomp
 endkey
@@ -147,6 +149,58 @@ key: DREAM 3
 	enddecomp
 endkey
 
+key: PERHAPS
+	decomp: 0
+		reassembly: You don't seem quite certain.
+		reassembly: Why the uncertain tone?
+		reassembly: Can't you be more positive?
+		reassembly: You aren't sure.
+		reassembly: Don't you know?
+	enddecomp
+endkey
+
+key: NAME 15
+	decomp: 0
+		reassembly: I am not interested in names.
+		reassembly: I've you before, I don't care about names. Please continue.
+		reassembly: Again with the name issue. Move along.
+		reassembly: If you mention something related to names again, I'm coming after you.
+	enddecomp
+endkey
+
+key: XFREMD
+	decomp: 0
+		reassembly: I am sorry, I only speak 'Murican.
+	enddecomp
+endkey
+
+# TODO: make I = YOU unconditional replacement as well, same for all keywords
+key: AM
+	replace: ARE
+	decomp: 0 ARE YOU 0
+		reassembly: Do you believe you are 3?
+		reassembly: Would you want to be 3?
+		reassembly: You wish I would tell you that you are 3.
+		reassembly: What would it mean if you were were 3?
+		reassembly: = WHAT
+	enddecomp
+	decomp: 0
+		reassembly: Why do you say 'am?'
+		reassembly: I don't understand that.
+	enddecomp
+endkey
+
+key: DEUTSCH = XFREMD
+endkey
+
+key: FRANCAIS = XFREMD
+endkey
+
+key: ITALIANO = XFREMD
+endkey
+
+key: ESPANOL = XFREMD
+endkey
 
 key: HOW = WHAT
 endkey

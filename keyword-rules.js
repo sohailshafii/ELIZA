@@ -276,7 +276,7 @@ KeywordRules.prototype =
                 tokenUsed = decompResult[realTokenIndex].toLowerCase().replace(trimmedSpacesRegEx, '');
               }
               reconstructedLine += tokenUsed;
-              // add any punctuation
+              // add any punctuation TODO: fix for multiple adjacent punctuation
               var punctuationMatch = punctuationRegEx.exec(currentReconToken);
               if (punctuationMatch !== null)
               {
