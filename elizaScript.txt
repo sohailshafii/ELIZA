@@ -95,7 +95,7 @@ key: REMEMBER 5
 	enddecomp
 endkey
 
-key: MY
+key: MY 2
 	memory
 	replace: YOUR
 	decomp: 0 YOUR 0

@@ -143,7 +143,7 @@ KeywordRules.prototype =
           for (var familyIndex = 0, numFamily = familyMembers.length;
             familyIndex < numFamily; familyIndex++)
           {
-            newSpecialTokens[tokenIndex] = familyMembers[familyIndex];
+            newSpecialTokens[tokenIndex] = "(" + familyMembers[familyIndex] + ")";
             setupRegExPermutations(newSpecialTokens, keywordToFamily,
               decompositionRegExArray);
           }
@@ -211,68 +211,84 @@ KeywordRules.prototype =
       console.log("Post-replacement: " + inputLine);
     }
 
+    var decompsThatWork = [];
     for (var decompIndex = 0, numDecomps = this.decompArray.length;
       decompIndex < numDecomps; decompIndex++)
     {
       var decompRules = this.decompArray[decompIndex];
 
       var decompRegEx = new RegExp(decompRules.decompositionRegExString);
-      var decompResult = decompRegEx.exec(inputLine);
-      if (decompResult != null)
+      var decompTest = decompRegEx.test(inputLine);
+      if (decompTest)
       {
-        console.log("Decomp result: " + decompResult + " decomp: " + decompRegEx);
+        decompsThatWork.push(decompRules);
+      }
+    }
 
-        // create a reconstruction
-        var reconstructionToBeUsed = decompRules.getNextReconstruction();
-       
-        if (reconstructionToBeUsed != null)
+    // pick random decomp that works
+    if (decompsThatWork.length > 0)
+    {
+      var randomIndex = parseInt(Math.random()*decompsThatWork.length);
+      var decompRules = decompsThatWork[randomIndex];
+      var decompRegEx = new RegExp(decompRules.decompositionRegExString);
+      var decompResult = decompRegEx.exec(inputLine);
+
+      console.log("Input line: " + inputLine);
+      console.log("Decomp result: " + decompResult + " decomp: " + decompRegEx);
+
+      // create a reconstruction
+      var reconstructionToBeUsed = decompRules.getNextReconstruction();
+     
+      if (reconstructionToBeUsed != null)
+      {
+        var rule = reconstructionToBeUsed.rule;
+        var equivalentKeyword = reconstructionToBeUsed.equivalentKeyword;
+
+        // if we encounter NEWKEY, don't try this keyword anymore
+        if (rule == "NEWKEY") return null;
+
+        // if equivalency, use that instead
+        if (equivalentKeyword != null)
         {
-          var rule = reconstructionToBeUsed.rule;
-          var equivalentKeyword = reconstructionToBeUsed.equivalentKeyword;
-
-          // if we encounter NEWKEY, don't try this keyword anymore
-          if (rule == "NEWKEY") return null;
-
-          // if equivalency, use that instead
-          if (equivalentKeyword != null)
+          var equivalentkeywordRules = this.allKeywordToKeywordRules[equivalentKeyword];
+          return equivalentkeywordRules.attemptReconstruction(inputLine);
+        }
+        // otherwise, do reconstruction as usual
+        else 
+        {
+          reconstructedLine = "";
+          for (var tokenIndex = 0, numTokens = rule.length; tokenIndex < numTokens; tokenIndex++)
           {
-            var equivalentkeywordRules = this.allKeywordToKeywordRules[equivalentKeyword];
-            return equivalentkeywordRules.attemptReconstruction(inputLine);
-          }
-          // otherwise, do reconstruction as usual
-          else 
-          {
-            reconstructedLine = "";
-            for (var tokenIndex = 0, numTokens = rule.length; tokenIndex < numTokens; tokenIndex++)
+            var currentReconToken = rule[tokenIndex];
+            console.log("Current reconstruction rule token: " + currentReconToken);
+            if (tokenIndex > 0) reconstructedLine += " ";
+            // if it's a number, look up token in original line
+            if (numberRegEx.test(currentReconToken))
             {
-              var currentReconToken = rule[tokenIndex];
-              console.log("Current reconstruction rule token: " + currentReconToken);
-              if (tokenIndex > 0) reconstructedLine += " ";
-              // if it's a number, look up token in original line
-              if (numberRegEx.test(currentReconToken))
+              var numberMatch = numberRegEx.exec(currentReconToken)[1];
+              // first token of deconstruction is decompResult[1]; remaining tokens follow
+              // decompResult[0] is the whole string
+              var realTokenIndex = parseInt(numberMatch) + 1;
+              // trim any spaces at ends, if token exists
+              var tokenUsed = "";
+              if (decompResult.length > realTokenIndex)
               {
-                var numberMatch = numberRegEx.exec(currentReconToken)[1];
-                // first token of deconstruction is decompResult[1]; remaining tokens follow
-                // decompResult[0] is the whole string
-                var realTokenIndex = parseInt(numberMatch) + 1;
-                // trim any spaces at ends
-                var tokenUsed = decompResult[realTokenIndex].toLowerCase().replace(trimmedSpacesRegEx, '');
-                reconstructedLine += tokenUsed;
-                // add any punctuation
-                var punctuationMatch = punctuationRegEx.exec(currentReconToken);
-                if (punctuationMatch !== null)
-                {
-                  reconstructedLine += punctuationMatch;
-                }
+                tokenUsed = decompResult[realTokenIndex].toLowerCase().replace(trimmedSpacesRegEx, '');
               }
-              else {
-                reconstructedLine += currentReconToken;
+              reconstructedLine += tokenUsed;
+              // add any punctuation
+              var punctuationMatch = punctuationRegEx.exec(currentReconToken);
+              if (punctuationMatch !== null)
+              {
+                reconstructedLine += punctuationMatch;
               }
             }
+            else {
+              reconstructedLine += currentReconToken;
+            }
           }
-          memoryFunction = decompRules.memoryFunction;
-          break;
         }
+        memoryFunction = decompRules.memoryFunction;
       }
     }
 
