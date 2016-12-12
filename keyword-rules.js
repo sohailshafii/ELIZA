@@ -70,7 +70,6 @@ KeywordRules.prototype =
     // create a regex out of the decomposition. first split the decomposition into separated by
     // spaces
     var decompositionArray = decompositionString.split(" ");
-    var decompositionRegExArray = [];
     // all regexes are separated into groups
     var nonPunctuation = "([^.,\/#!?$%\\^&\\*;:{}=\\-_`~()]*)";
     var spaces = "\\s*";
@@ -97,7 +96,7 @@ KeywordRules.prototype =
       {
         // use an extra slash in front of /FAMILY to delineate with single slash tokens
         // in regex test
-        currRegEx += familyDelimiter + currentToken + familyDelimiter;
+        currRegEx += familyDelimiter + "/" + currentToken + familyDelimiter;
       }
       else if (numberRegEx.test(currentToken))
       {
@@ -122,6 +121,7 @@ KeywordRules.prototype =
       }
     }
 
+    var decompositionRegExArray = [];
     // find special tokens, like family nouns, that may have been set up above
     // first split reg ex into family and non-family items
     var currRegExSpecialTokens = currRegEx.split(familyDelimiter);
@@ -137,7 +137,7 @@ KeywordRules.prototype =
         var testFamily = /\/\/(\S+)/.exec(currentToken);
         if (testFamily != null)
         {
-          foundAlternativeRegEx = true;
+          foundNewPermutation = true;
           var newSpecialTokens = specialTokens.slice();
           var familyMembers = keywordToFamily[testFamily[1]];
           for (var familyIndex = 0, numFamily = familyMembers.length;
@@ -153,7 +153,9 @@ KeywordRules.prototype =
       // we have substituted all /<FAMILY>-based keywords with members of
       // those specific families
       if (!foundNewPermutation)
+      {
         decompositionRegExArray.push(specialTokens.join(''));
+      }
     };
 
     if (currRegExSpecialTokens.length > 1)

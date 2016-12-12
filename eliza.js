@@ -8,9 +8,11 @@ var readLineInterface = readLine.createInterface(process.stdin, process.stdout, 
 var prompt = '>';
 
 var speechEngine = new speechEngine();
+var debugMode = (process.argv.length > 2 ? (process.argv[2] == "debug") : false);
 
 scriptReader = new scriptReader("./elizaScript.txt");
-scriptReader.readScriptAndBuildEngine(speechEngine);
+scriptReader.readScriptAndBuildEngine(speechEngine, debugMode);
+
 
 readLineInterface.on('line', function(line) {
   var response = speechEngine.analyzeInputLine(line);

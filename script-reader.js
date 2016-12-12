@@ -5,7 +5,7 @@ function ScriptReader(scriptFileName) {
 
 ScriptReader.prototype =
 {
-  readScriptAndBuildEngine: function(speechEngine) {
+  readScriptAndBuildEngine: function(speechEngine, debugMode) {
     var fs = require('fs');
 
     try {
@@ -17,7 +17,8 @@ ScriptReader.prototype =
     {
       console.log("Script read error: ", e.stack);
     }
-    speechEngine.print();
+    if (debugMode)
+      speechEngine.print();
   }
 };
 

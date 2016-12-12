@@ -158,5 +158,4 @@ endkey
 key: COMPUTERS = COMPUTER
 endkey
 
-#(DREAMS = DREAM 3 (=DREAM))
 
