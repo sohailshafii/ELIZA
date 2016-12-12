@@ -260,7 +260,7 @@ SpeechEngine.prototype =
       if (this.keywordToReplacementKeyword.hasOwnProperty(currentWordUpperCase))
       {
         var replacement = this.keywordToReplacementKeyword[currentWordUpperCase];
-        inputLine = inputLine.replace(new RegExp(currentWordNormalCase), 
+        inputLine = inputLine.replace(new RegExp(currentWordNormalCase, 'g'), 
           replacement);
         inputLineArray[inputLineArrayIndex] = replacement;
       }
@@ -347,6 +347,13 @@ SpeechEngine.prototype =
   print: function()
   {
     if (this.keywordToKeywordRules === null) return;
+
+    for (var key in this.keywordToReplacementKeyword)
+    {
+      if (!this.keywordToReplacementKeyword.hasOwnProperty(key)) return;
+      console.log(key + "->" + this.keywordToReplacementKeyword[key]);
+    }
+
     for (var key in this.keywordToKeywordRules)
     {
       if (!this.keywordToKeywordRules.hasOwnProperty(key)) return;

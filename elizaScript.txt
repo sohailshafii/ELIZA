@@ -37,7 +37,7 @@ family: FAMILY=FATHER,MOTHER,SISTER,BROTHER,WIFE,CHILDREN
 # content-free remarks
 content-free: I am not sure I understand you fully.
 content-free: Please, go on.
-content-free: What does that suggest to you.
+content-free: What does that suggest to you?
 content-free: Do you feel strongly about such things?
 content-free: You're an ass.
 
@@ -101,20 +101,18 @@ key: MY
 	decomp: 0 YOUR 0
 		reassembly: Let's discuss further your 2.
 		reassembly: Earlier you said your 2.
-		reassembly: But your 2!!!
+		reassembly: But your 2.
 		reassembly: Does that have anything to do with the fact that your 2?
+		reassembly: Your 2?
+		reassembly: Why do you say your 2?
+		reassembly: Does that suggest anything else which belongs to you?
+		reassembly: Is it important to you that your 2?
 	enddecomp
 	decomp: 0 YOUR 0 /FAMILY 0
 		reassembly: Tell me more about your family.
 		reassembly: Who else in your family 4?
 		reassembly: Your 3?
 		reassembly: What else comes to mind when you think of your 3?
-	enddecomp
-	decomp: 0 YOUR 0
-		reassembly: Your 2?
-		reassembly: Why do you say your 2?
-		reassembly: Does that suggest anything else which belongs to you?
-		reassembly: Is it important to you that your 2?
 	enddecomp
 endkey
 

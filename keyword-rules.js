@@ -207,7 +207,7 @@ KeywordRules.prototype =
     {
       console.log("Pre-replacement: " + inputLine + " " + this.replacementKeyword);
       // do necessary replacements...
-      inputLine = inputLine.replace(this.keyword, this.replacementKeyword);
+      inputLine = inputLine.replace(new RegExp(this.keyword, "g"), this.replacementKeyword);
       console.log("Post-replacement: " + inputLine);
     }
 
