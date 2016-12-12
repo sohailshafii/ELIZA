@@ -34,6 +34,13 @@ pre-replacement: DAD=FATHER
 family: BELIEF=FEEL,THINK,BELIEVE,WISH
 family: FAMILY=FATHER,MOTHER,SISTER,BROTHER,WIFE,CHILDREN
 
+# content-free remarks
+content-free: I am not sure I understand you fully.
+content-free: Please, go on.
+content-free: What does that suggest to you.
+content-free: Do you feel strongly about such things?
+content-free: You're an ass.
+
 # script rules
 key: SORRY
 	decomp: 0

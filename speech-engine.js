@@ -8,6 +8,7 @@ function SpeechEngine(){
 
   this.introductoryLines = [];
   this.goodByeLines = [];
+  this.contentFreeRemarks = [];
   this.memoryStack = [];
 }
 
@@ -21,6 +22,7 @@ SpeechEngine.prototype =
     var goodByeRegEx = /Quit:\s*(.+)/;
     var replacementRegEx = /pre-replacement:\s*(\S+)=(.+)\s*/;
     var familyRegEx = /family:\s*(\S+)=(.+)\s*/;
+    var contentFreeRegEx = /content-free:\s*(.+)/;
 
     this.currentKeyword = null;
     this.currentDecompRule = "";
@@ -37,6 +39,7 @@ SpeechEngine.prototype =
       var goodByeLineTest = goodByeRegEx.exec(currentLine);
       var replacementTest = replacementRegEx.exec(currentLine);
       var familyTest = familyRegEx.exec(currentLine);
+      var contentFreeTest = contentFreeRegEx.exec(currentLine);
 
       if (introLineTest != null)
       {
@@ -45,6 +48,10 @@ SpeechEngine.prototype =
       else if (goodByeLineTest != null)
       {
         this.goodByeLines.push(goodByeLineTest[1]);
+      }
+      else if (contentFreeTest != null)
+      {
+        this.contentFreeRemarks.push(contentFreeTest[1]);
       }
       else if (replacementTest != null)
       {
@@ -200,31 +207,33 @@ SpeechEngine.prototype =
   tokenizeBasedOnSpaceAndPunctuation: function(inputLine)
   {
     var currentInputLineArray = [];
-    var newWord = true;
+    var newWordNotFound = true;
     var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
     var spaceRegEx = /\s/;
     for (var inputLineIndex = 0, inputLineLength = inputLine.length;
       inputLineIndex < inputLineLength; inputLineIndex++)
     {
       var currentCharacter = inputLine[inputLineIndex];
-      // skip spaces and indicate that we are on new word
+      // skip spaces and indicate that we are going to encounter a new word
       if (spaceRegEx.test(currentCharacter)) 
-      { newWord = true; continue; }
+      { newWordNotFound = true; continue; }
 
       if (punctuationRegEx.test(currentCharacter))
       {
         currentInputLineArray.push(currentCharacter);
-        newWord = true;
+        newWordNotFound = true;
       }
-      // new word encountered with new character, turn flag off so that we can
-      // append to it on loops next iteration
-      else if (newWord)
+      // if we have not encountered a space or punctuation mark,
+      // and have not encountered a new word so far, it then we must be 
+      // on a new word now
+      else if (newWordNotFound)
       {
         currentInputLineArray.push(currentCharacter);
-        newWord = false;
+        newWordNotFound = false;
       }
       else
       {
+        // append character to current word
         currentInputLineArray[currentInputLineArray.length-1] += currentCharacter;
       }
     }
@@ -233,7 +242,7 @@ SpeechEngine.prototype =
 
   analyzeInputLine: function(inputLine)
   {
-    var outputLine = "lol";
+    var outputLine = "---";
     var currentMaxRanking = -1;
     var keywordRulesStack = [];
     var keywordsUsed = {};
@@ -262,7 +271,7 @@ SpeechEngine.prototype =
     {
       var currentWordNormalCase = inputLineArray[inputLineArrayIndex];
       var currentWord = currentWordNormalCase.toUpperCase();
-      console.log("word: " + currentWord);
+      console.log("word from parsed input line " + currentWord);
 
       // if keyword encountered
       if (this.keywordToKeywordRules.hasOwnProperty(currentWord))
@@ -289,6 +298,7 @@ SpeechEngine.prototype =
       }
 
       // if we hit punctuation, then stop if keystack is not empty
+      // this means that we stop if we have keywords for the current sentence
       if (punctuationRegEx.test(currentWord) && keywordRulesStack.length > 0)
       {
         break;
@@ -297,9 +307,17 @@ SpeechEngine.prototype =
 
     console.log("Line after keyword processing and all replacements: " + inputLine);
 
-    if (keywordRulesStack.length == 0 && this.memoryStack.length > 0)
+    if (keywordRulesStack.length == 0)
     {
-      outputLine = this.memoryStack.pop();
+      if (this.memoryStack.length > 0)
+      {
+        outputLine = this.memoryStack.pop();
+      }
+      else if (this.contentFreeRemarks != null && this.contentFreeRemarks.length > 0)
+      {
+        var randomIndex = parseInt(Math.random()*this.contentFreeRemarks.length);
+        outputLine = this.contentFreeRemarks[randomIndex];
+      }
     }
     else
     {
