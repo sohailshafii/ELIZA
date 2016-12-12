@@ -5,7 +5,7 @@ function ScriptReader(scriptFileName) {
 
 ScriptReader.prototype =
 {
-  readFile: function(speechEngine) {
+  readScriptAndBuildEngine: function(speechEngine) {
     var fs = require('fs');
 
     try {

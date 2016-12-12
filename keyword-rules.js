@@ -8,7 +8,7 @@ ReconstructionRule.prototype =
 {
   print: function()
   {
-    console.log("Reconstruction: " + this.rule + " " + this.equivalentKeyword);
+    console.log("Reconstruction rule: " + this.rule + ", equivalentKeyword: " + this.equivalentKeyword + ".");
   }
 };
 
@@ -33,7 +33,7 @@ Reconstructions.prototype =
 
   print: function()
   {
-    console.log(this.decompositionRegExString + " " + this.memoryFunction);
+    console.log("Decomposition reg ex: " + this.decompositionRegExString + ", memory?: " + this.memoryFunction + ".");
     for (var reconsIndex = 0, numRecons = this.reconstructionList.length; reconsIndex < numRecons;
         reconsIndex++)
     {
@@ -48,11 +48,20 @@ function KeywordRules (keyword, ranking)
   this.ranking = ranking;
   this.replacementKeyword = null;
   this.decompArray = [];
+
+  // shared among every keyword--should be class variable or something
   this.allKeywordToKeywordRules = null;
 }
 
 KeywordRules.prototype =
 {
+  setUpFromAlias: function(aliasKeywordRules)
+  {
+    this.ranking = aliasKeywordRules.ranking;
+    this.replacementKeyword = aliasKeywordRules.replacementKeyword;
+    this.decompArray = aliasKeywordRules.decompArray;
+  },
+
   addDecompAndReconstructions: function(allKeywordToKeywordRules,
     decompositionString, reconstructionStrings, memoryFunction, keywordToFamily)
   {
@@ -65,12 +74,12 @@ KeywordRules.prototype =
     // all regexes are separated into groups
     var nonPunctuation = "([^.,\/#!?$%\\^&\\*;:{}=\\-_`~()]*)";
     var spaces = "\\s*";
-
-    // TODO: if one token satisfies family test, make multiple decompositions for
-    // these set of reconstructions
-    var familyTest = /(\/\S+)/;
-    // if there is a family keyword, need to make an array of reg exs
+    var numberRegEx = /^\d+/;
+    // if there is a family keyword, need to make an array of reg ex
     // if there are multiple, then a permutation of them need to be made
+    // usually a family keyword is in the form /FAMILY
+    var familyRegEx = /(\/\S+)/;
+    var familyDelimiter = "!+!";
 
     var currRegEx = "^";
     // create regex out of tokens in decomposition
@@ -84,15 +93,15 @@ KeywordRules.prototype =
         currRegEx += spaces;
       }
 
-      if (/\/\S+/.test(currentToken))
+      if (familyRegEx.test(currentToken))
       {
-        // use an extra slash to delineate with single slash tokens
-        currRegEx += "!+!/" + currentToken + "!+!";
+        // use an extra slash in front of /FAMILY to delineate with single slash tokens
+        // in regex test
+        currRegEx += familyDelimiter + currentToken + familyDelimiter;
       }
-      else if (/^\d+/.test(currentToken))
+      else if (numberRegEx.test(currentToken))
       {
         var numWords = parseInt(currentToken);
-        // use groups to split decomposition into several items
         // an indifinite number of words
         if (numWords == 0)
         {
@@ -113,44 +122,43 @@ KeywordRules.prototype =
       }
     }
 
-    // find special tokens, like family nouns
-    var currRegExSpecialTokens = currRegEx.split("!+!");
-    var setupRegEx = function(specialTokens, keywordToFamily,
+    // find special tokens, like family nouns, that may have been set up above
+    // first split reg ex into family and non-family items
+    var currRegExSpecialTokens = currRegEx.split(familyDelimiter);
+    var setupRegExPermutations = function(specialTokens, keywordToFamily,
       decompositionRegExArray) {
-      var foundAlternativeRegEx = false;
+      var foundNewPermutation = false;
 
-      console.log("set up reg ex tokens: " + specialTokens);
       for (var tokenIndex = 0, numTokens = specialTokens.length;
         tokenIndex < numTokens; tokenIndex++)
       {
         var currentToken = specialTokens[tokenIndex];
-        // use two slashes in case there are tokens with one slash!
+        // family regexs have two slashes in front of them!
         var testFamily = /\/\/(\S+)/.exec(currentToken);
-        console.log(currentToken + " test family: " + testFamily);
         if (testFamily != null)
         {
           foundAlternativeRegEx = true;
           var newSpecialTokens = specialTokens.slice();
           var familyMembers = keywordToFamily[testFamily[1]];
-          console.log("family: " + testFamily[1] + " " + familyMembers);
           for (var familyIndex = 0, numFamily = familyMembers.length;
             familyIndex < numFamily; familyIndex++)
           {
             newSpecialTokens[tokenIndex] = familyMembers[familyIndex];
-            setupRegEx(newSpecialTokens, keywordToFamily,
+            setupRegExPermutations(newSpecialTokens, keywordToFamily,
               decompositionRegExArray);
           }
         }
       }
-      // if we didn't find alternative reg exs, just return joined version 
-      // of tokens as reg ex
-      if (!foundAlternativeRegEx)
+      // if we didn't find alternative reg exs, that means that
+      // we have substituted all /<FAMILY>-based keywords with members of
+      // those specific families
+      if (!foundNewPermutation)
         decompositionRegExArray.push(specialTokens.join(''));
     };
 
     if (currRegExSpecialTokens.length > 1)
     {
-      setupRegEx(currRegExSpecialTokens, keywordToFamily, decompositionRegExArray);
+      setupRegExPermutations(currRegExSpecialTokens, keywordToFamily, decompositionRegExArray);
     }
     else 
     {
@@ -192,13 +200,13 @@ KeywordRules.prototype =
 
     inputLine = inputLine.toUpperCase();
 
+    var memoryFunction = false;
     if (this.replacementKeyword != null)
     {
-      console.log("pre: " + inputLine + " " + this.replacementKeyword);
+      console.log("Pre-replacement: " + inputLine + " " + this.replacementKeyword);
       // do necessary replacements...
       inputLine = inputLine.replace(this.keyword, this.replacementKeyword);
-      console.log("post: " + inputLine);
-      var memoryFunction = false;
+      console.log("Post-replacement: " + inputLine);
     }
 
     for (var decompIndex = 0, numDecomps = this.decompArray.length;
@@ -207,16 +215,15 @@ KeywordRules.prototype =
       var decompRules = this.decompArray[decompIndex];
 
       var decompRegEx = new RegExp(decompRules.decompositionRegExString);
-      var decompPasses = decompRegEx.test(inputLine);
-      if (decompPasses)
+      var decompResult = decompRegEx.exec(inputLine);
+      if (decompResult != null)
       {
-        var decompResult = decompRegEx.exec(inputLine);
         console.log("Decomp result: " + decompResult + " decomp: " + decompRegEx);
 
         // create a reconstruction
         var reconstructionToBeUsed = decompRules.getNextReconstruction();
        
-        if (reconstructionToBeUsed !== null)
+        if (reconstructionToBeUsed != null)
         {
           var rule = reconstructionToBeUsed.rule;
           var equivalentKeyword = reconstructionToBeUsed.equivalentKeyword;
@@ -230,34 +237,34 @@ KeywordRules.prototype =
             var equivalentkeywordRules = this.allKeywordToKeywordRules[equivalentKeyword];
             return equivalentkeywordRules.attemptReconstruction(inputLine);
           }
+          // otherwise, do reconstruction as usual
           else 
           {
             reconstructedLine = "";
-            for (var tokenIndex = 0, numTokens = rule.length;
-              tokenIndex < numTokens; tokenIndex++)
+            for (var tokenIndex = 0, numTokens = rule.length; tokenIndex < numTokens; tokenIndex++)
             {
-              var currentToken = rule[tokenIndex];
-              console.log("Current token: " + currentToken);
+              var currentReconToken = rule[tokenIndex];
+              console.log("Current reconstruction rule token: " + currentReconToken);
               if (tokenIndex > 0) reconstructedLine += " ";
               // if it's a number, look up token in original line
-              if (numberRegEx.test(currentToken))
+              if (numberRegEx.test(currentReconToken))
               {
-                var numberMatch = numberRegEx.exec(currentToken)[1];
+                var numberMatch = numberRegEx.exec(currentReconToken)[1];
                 // first token of deconstruction is decompResult[1]; remaining tokens follow
+                // decompResult[0] is the whole string
                 var realTokenIndex = parseInt(numberMatch) + 1;
                 // trim any spaces at ends
                 var tokenUsed = decompResult[realTokenIndex].toLowerCase().replace(trimmedSpacesRegEx, '');
-                //trimmedSpacesRegEx = /(^\s+|\s+$)/g
                 reconstructedLine += tokenUsed;
                 // add any punctuation
-                var punctuationMatch = punctuationRegEx.exec(currentToken);
+                var punctuationMatch = punctuationRegEx.exec(currentReconToken);
                 if (punctuationMatch !== null)
                 {
                   reconstructedLine += punctuationMatch;
                 }
               }
               else {
-                reconstructedLine += currentToken;
+                reconstructedLine += currentReconToken;
               }
             }
           }
@@ -272,23 +279,16 @@ KeywordRules.prototype =
 
   print: function()
   {
-    console.log("replacement: " + this.replacementKeyword);
+    console.log("Keyword: " + this.keyword + ", ranking: " + this.ranking +
+      ", replacement: " + this.replacementKeyword + ".");
     for (var decompIndex = 0, numDecomps = this.decompArray.length;
       decompIndex < numDecomps; decompIndex++)
     {
       var decompRules = this.decompArray[decompIndex];
-      console.log("Decomposition: " + decompRules);
       decompRules.print();
     }
   }
 };
 
-function ReplacementKeword ()
-{
-  this.keyword = null;
-  this.replacementKeyword = null;
-}
-
 
 exports.refToKeywordRules = KeywordRules;
-exports.refToReplaceKeyword = ReplacementKeword;

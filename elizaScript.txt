@@ -3,7 +3,12 @@ Intro: Hello, I'm Dr. ELIZA. How do you do? Please tell me your problem.
 Intro: Hi, I'm Dr. ELIZA. Let's get this over with; what's your problem?
 Intro: How do you do? Please tell me your problem.
 Intro: What ails you?
-# end of introductory messages
+# Quit messages
+Quit: Have a nice day.
+Quit: Take care of yourself.
+Quit: Goodbye.
+Quit: See you around.
+# on-the-fly replacements
 pre-replacement: DONT=DON'T
 pre-replacement: CANT=CAN'T
 pre-replacement: WONT=WON'T
@@ -25,9 +30,11 @@ pre-replacement: YOURSELF=MYSELF
 pre-replacement: MOM=MOTHER
 pre-replacement: DAD=FATHER
 
+# family associations
 family: BELIEF=FEEL,THINK,BELIEVE,WISH
 family: FAMILY=FATHER,MOTHER,SISTER,BROTHER,WIFE,CHILDREN
 
+# script rules
 key: SORRY
 	decomp: 0
 		reassembly: Please don't apologize.
