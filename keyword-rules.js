@@ -203,13 +203,7 @@ KeywordRules.prototype =
     inputLine = inputLine.toUpperCase();
 
     var memoryFunction = false;
-    if (this.replacementKeyword != null)
-    {
-      console.log("Pre-replacement: " + inputLine + " " + this.replacementKeyword);
-      // do necessary replacements...
-      inputLine = inputLine.replace(new RegExp(this.keyword, "g"), this.replacementKeyword);
-      console.log("Post-replacement: " + inputLine);
-    }
+    console.log("Line to be reconstructed: " + inputLine);
 
     var decompsThatWork = [];
     for (var decompIndex = 0, numDecomps = this.decompArray.length;

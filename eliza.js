@@ -13,7 +13,6 @@ var debugMode = (process.argv.length > 2 ? (process.argv[2] == "debug") : false)
 scriptReader = new scriptReader("./elizaScript.txt");
 scriptReader.readScriptAndBuildEngine(speechEngine, debugMode);
 
-
 readLineInterface.on('line', function(line) {
   var response = speechEngine.analyzeInputLine(line);
   console.log(response);

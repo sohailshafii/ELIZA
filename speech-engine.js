@@ -250,7 +250,7 @@ SpeechEngine.prototype =
     var inputLineArray = this.tokenizeBasedOnSpaceAndPunctuation(inputLine);
     var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
 
-    // pre-replacements
+    // do all on-the-fly replacements here
     // TODO: fix this case nonsense
     for (var inputLineArrayIndex = 0, inputLineArrayLength = inputLineArray.length;
       inputLineArrayIndex < inputLineArrayLength; inputLineArrayIndex++)
@@ -260,8 +260,9 @@ SpeechEngine.prototype =
       if (this.keywordToReplacementKeyword.hasOwnProperty(currentWordUpperCase))
       {
         var replacement = this.keywordToReplacementKeyword[currentWordUpperCase];
-        inputLine = inputLine.replace(new RegExp(currentWordNormalCase, 'g'), 
+        inputLine = inputLine.replace(new RegExp("\\b"+currentWordNormalCase+"\\b", 'g'), 
           replacement);
+        // TODO: only replaces first instance in array, fix...
         inputLineArray[inputLineArrayIndex] = replacement;
       }
     }
@@ -294,6 +295,14 @@ SpeechEngine.prototype =
             keywordRulesStack.push(keywordRules);
           }
           keywordsUsed[currentWord] = currentWord;
+
+          // key to see if on-the-fly replacement is required as well
+          if (keywordRules.replacementKeyword != null)
+          {
+            inputLine = inputLine.replace(new RegExp("\\b"+currentWordNormalCase+"\\b", 'g'), 
+              keywordRules.replacementKeyword);
+            inputLineArray[inputLineArrayIndex] = keywordRules.replacementKeyword;
+          }
     	 }
       }
 

@@ -174,7 +174,49 @@ key: XFREMD
 	enddecomp
 endkey
 
-# TODO: make I = YOU unconditional replacement as well, same for all keywords
+key: YOUR
+	replace: MY
+	decomp: 0 MY 0
+		reassembly: Why are you concerned over my 3?
+		reassembly: What about your own 3?
+		reassembly: Are you worried about someone else's 3?
+		reassembly: Really, my 3?
+	enddecmp
+endkey
+
+key: WAS 2
+	decomp: 0 WAS YOU 0
+		reassembly: What if you were 3?
+		reassembly: Do you think you were 3?
+		reassembly: were you 3?
+		reassembly: What would it mean if you were 3?
+		reassembly: What does '3' suggest to you?
+		reassembly: = WHAT
+	enddecomp
+	decomp: 0 YOU WAS 0
+		reassembly: Were you really?
+		reassembly: Why do you tell me you were 3 now?
+		reassembly: Perhaps I already knew you were 3.
+	enddecomp
+	decomp: 0 WAS I 0
+		reassembly: Would you like to believe I was 3?
+		reassembly: What suggests that I was 3?
+		reassembly: What do you think?
+		reassembly: Perhaps I was 3?
+		reassembly: What if I had been 3?
+	enddecomp
+	decomp: 0
+		reassembly: NEWKEY
+	enddecomp
+endkey
+
+key: I
+	replace: YOU
+	decomp: 0 YOU WAS 0
+		reassembly: = WAS
+	enddecomp
+endkey
+
 key: AM
 	replace: ARE
 	decomp: 0 ARE YOU 0
