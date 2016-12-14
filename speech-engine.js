@@ -55,8 +55,8 @@ SpeechEngine.prototype =
       }
       else if (replacementTest != null)
       {
-        var keyword = replacementTest[1],
-          replacementKeyword = replacementTest[2];
+        var keyword = replacementTest[1].toLowerCase(),
+          replacementKeyword = replacementTest[2].toLowerCase();
         if (!this.keywordToReplacementKeyword.hasOwnProperty(keyword))
         {
           this.keywordToReplacementKeyword[keyword] = replacementKeyword;
@@ -64,7 +64,7 @@ SpeechEngine.prototype =
       }
       else if (familyTest != null)
       {
-        var keyword = familyTest[1];
+        var keyword = familyTest[1].toLowerCase();
         var parsedFamilyMembers = familyTest[2].split(",");
 
         if (!this.keywordToFamily.hasOwnProperty(keyword))
@@ -74,7 +74,7 @@ SpeechEngine.prototype =
         for (var tokenIndex = 0, numTokens = parsedFamilyMembers.length;
           tokenIndex < numTokens; tokenIndex++)
         {
-          this.keywordToFamily[keyword].push(parsedFamilyMembers[tokenIndex]);
+          this.keywordToFamily[keyword].push(parsedFamilyMembers[tokenIndex].toLowerCase());
         }
       }
       else 
@@ -110,7 +110,7 @@ SpeechEngine.prototype =
 
       if (equivRegExTest != null)
       {
-        this.currentKeyword = equivRegExTest[1];
+        this.currentKeyword = equivRegExTest[1].toLowerCase();
         this.createKeywordFromEquivalency(this.currentKeyword, equivRegExTest[2]);
       }
       else
@@ -118,23 +118,23 @@ SpeechEngine.prototype =
         var keywordRank = 0;
         if (rankRegExTest != null)
         {
-          this.currentKeyword = rankRegExTest[1];
+          this.currentKeyword = rankRegExTest[1].toLowerCase();
           keywordRank = rankRegExTest[2];
         }
         else 
         {
-          this.currentKeyword = keywordPhrase.replace(trimmedSpacesRegEx,'');
+          this.currentKeyword = keywordPhrase.replace(trimmedSpacesRegEx,'').toLowerCase();
         }
         this.makeNewKeywordRules(this.currentKeyword, keywordRank);
       }
     }
     else if (replaceTest != null)
     {
-      this.keywordToKeywordRules[this.currentKeyword].replacementKeyword = replaceTest[1].replace(trimmedSpacesRegEx, '');
+      this.keywordToKeywordRules[this.currentKeyword].replacementKeyword = replaceTest[1].replace(trimmedSpacesRegEx, '').toLowerCase();
     }
     else if (decompTest != null)
     {
-      this.currentDecompRule = decompTest[1].replace(trimmedSpacesRegEx,'');
+      this.currentDecompRule = decompTest[1].replace(trimmedSpacesRegEx,'').toLowerCase();
     }
     else if (reassemblyTest != null)
     {
@@ -242,7 +242,7 @@ SpeechEngine.prototype =
 
   analyzeInputLine: function(inputLine)
   {
-    var outputLine = "---";
+    var outputLine = null;
     var currentMaxRanking = -1;
     var keywordRulesStack = [];
     var keywordsUsed = {};
@@ -251,15 +251,15 @@ SpeechEngine.prototype =
     var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
 
     // do all on-the-fly replacements here
-    // TODO: fix this case nonsense
+    // note that we convert everything to lower-case by default
     for (var inputLineArrayIndex = 0, inputLineArrayLength = inputLineArray.length;
       inputLineArrayIndex < inputLineArrayLength; inputLineArrayIndex++)
     {
       var currentWordNormalCase = inputLineArray[inputLineArrayIndex];
-      var currentWordUpperCase = inputLineArray[inputLineArrayIndex].toUpperCase();
-      if (this.keywordToReplacementKeyword.hasOwnProperty(currentWordUpperCase))
+      var currentWordLowerCase = inputLineArray[inputLineArrayIndex].toLowerCase();
+      if (this.keywordToReplacementKeyword.hasOwnProperty(currentWordLowerCase))
       {
-        var replacement = this.keywordToReplacementKeyword[currentWordUpperCase];
+        var replacement = this.keywordToReplacementKeyword[currentWordLowerCase];
         inputLine = inputLine.replace(new RegExp("\\b"+currentWordNormalCase+"\\b", 'g'), 
           replacement);
         // TODO: only replaces first instance in array, fix...
@@ -271,7 +271,7 @@ SpeechEngine.prototype =
       inputLineArrayIndex < inputLineArrayLength; inputLineArrayIndex++)
     {
       var currentWordNormalCase = inputLineArray[inputLineArrayIndex];
-      var currentWord = currentWordNormalCase.toUpperCase();
+      var currentWord = currentWordNormalCase.toLowerCase();
       console.log("word from parsed input line " + currentWord);
 
       // if keyword encountered
@@ -316,7 +316,27 @@ SpeechEngine.prototype =
 
     console.log("Line after keyword processing and all replacements: " + inputLine);
 
-    if (keywordRulesStack.length == 0)
+    //console.log("keystack: " + keywordRulesStack);
+    for (var keywordStackIndex = 0, keywordStackLength = keywordRulesStack.length;
+      keywordStackIndex < keywordStackLength; keywordStackIndex++)
+    {
+      var currentKeywordRules = keywordRulesStack[keywordStackIndex];
+      var currentAttempt = currentKeywordRules.attemptReconstruction(inputLine);
+      console.log("keyword " + currentKeywordRules.keyword + " attempt " + currentAttempt);
+      if (currentAttempt !== null)
+      {
+        // memory function?
+        if (currentAttempt[1])
+        {
+          this.memoryStack.push(currentAttempt[0]);
+        }
+        outputLine = currentAttempt[0];
+        break;
+      }
+    }
+
+    // last-ditch efforts
+    if (outputLine == null)
     {
       if (this.memoryStack.length > 0)
       {
@@ -326,27 +346,6 @@ SpeechEngine.prototype =
       {
         var randomIndex = parseInt(Math.random()*this.contentFreeRemarks.length);
         outputLine = this.contentFreeRemarks[randomIndex];
-      }
-    }
-    else
-    {
-      //console.log("keystack: " + keywordRulesStack);
-      for (var keywordStackIndex = 0, keywordStackLength = keywordRulesStack.length;
-        keywordStackIndex < keywordStackLength; keywordStackIndex++)
-      {
-        var currentKeywordRules = keywordRulesStack[keywordStackIndex];
-        var currentAttempt = currentKeywordRules.attemptReconstruction(inputLine);
-        console.log("keyword " + currentKeywordRules.keyword + " attempt " + currentAttempt);
-        if (currentAttempt !== null)
-        {
-          // memory function?
-          if (currentAttempt[1])
-          {
-            this.memoryStack.push(currentAttempt[0]);
-          }
-          outputLine = currentAttempt[0];
-          break;
-        }
       }
     }
 

@@ -76,7 +76,7 @@ KeywordRules.prototype =
     var numberRegEx = /^\d+/;
     // if there is a family keyword, need to make an array of reg ex
     // if there are multiple, then a permutation of them need to be made
-    // usually a family keyword is in the form /FAMILY
+    // usually a family keyword is in the form /family
     var familyRegEx = /(\/\S+)/;
     var familyDelimiter = "!+!";
 
@@ -94,7 +94,7 @@ KeywordRules.prototype =
 
       if (familyRegEx.test(currentToken))
       {
-        // use an extra slash in front of /FAMILY to delineate with single slash tokens
+        // use an extra slash in front of /family to delineate with single slash tokens
         // in regex test
         currRegEx += familyDelimiter + "/" + currentToken + familyDelimiter;
       }
@@ -178,7 +178,7 @@ KeywordRules.prototype =
       var equivalentKeyword = null;
       if (equivaResult != null)
       {
-        equivalentKeyword = equivaResult[1];
+        equivalentKeyword = equivaResult[1].toLowerCase();
       }
 
       reconsArray.push(new ReconstructionRule(currentReconstr.split(" "), equivalentKeyword));
@@ -200,17 +200,15 @@ KeywordRules.prototype =
     var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
     var trimmedSpacesRegEx = /(^\s+|\s+$)/g;
 
-    inputLine = inputLine.toUpperCase();
+    inputLine = inputLine.toLowerCase();
 
     var memoryFunction = false;
-    console.log("Line to be reconstructed: " + inputLine);
 
     var decompsThatWork = [];
     for (var decompIndex = 0, numDecomps = this.decompArray.length;
       decompIndex < numDecomps; decompIndex++)
     {
       var decompRules = this.decompArray[decompIndex];
-
       var decompRegEx = new RegExp(decompRules.decompositionRegExString);
       var decompTest = decompRegEx.test(inputLine);
       if (decompTest)
@@ -227,9 +225,6 @@ KeywordRules.prototype =
       var decompRegEx = new RegExp(decompRules.decompositionRegExString);
       var decompResult = decompRegEx.exec(inputLine);
 
-      console.log("Input line: " + inputLine);
-      console.log("Decomp result: " + decompResult + " decomp: " + decompRegEx);
-
       // create a reconstruction
       var reconstructionToBeUsed = decompRules.getNextReconstruction();
      
@@ -239,7 +234,10 @@ KeywordRules.prototype =
         var equivalentKeyword = reconstructionToBeUsed.equivalentKeyword;
 
         // if we encounter NEWKEY, don't try this keyword anymore
-        if (rule == "NEWKEY") return null;
+        if (rule == "NEWKEY") 
+        {
+          return null;
+        }
 
         // if equivalency, use that instead
         if (equivalentKeyword != null)
@@ -292,7 +290,7 @@ KeywordRules.prototype =
   print: function()
   {
     console.log("Keyword: " + this.keyword + ", ranking: " + this.ranking +
-      ", replacement: " + this.replacementKeyword + ".");
+      ", replacement: " + this.replacementKeyword + ". Num decomps: " + this.decompArray.length);
     for (var decompIndex = 0, numDecomps = this.decompArray.length;
       decompIndex < numDecomps; decompIndex++)
     {

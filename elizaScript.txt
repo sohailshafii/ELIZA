@@ -44,6 +44,8 @@ content-free: Do you feel strongly about such things?
 content-free: You're an ass.
 
 # script rules
+# keyword/decomp/etc don't have to uppercase. I just made it that way
+# to make the script easier to read. Case matters for reassembly rules.
 key: SORRY
 	decomp: 0
 		reassembly: Please don't apologize.
