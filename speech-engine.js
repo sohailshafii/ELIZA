@@ -247,6 +247,8 @@ SpeechEngine.prototype =
     var keywordRulesStack = [];
     var keywordsUsed = {};
     
+    // make case consistent throughout function
+    inputLine = inputLine.toLowerCase();
     var inputLineArray = this.tokenizeBasedOnSpaceAndPunctuation(inputLine);
     var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
 
@@ -255,12 +257,11 @@ SpeechEngine.prototype =
     for (var inputLineArrayIndex = 0, inputLineArrayLength = inputLineArray.length;
       inputLineArrayIndex < inputLineArrayLength; inputLineArrayIndex++)
     {
-      var currentWordNormalCase = inputLineArray[inputLineArrayIndex];
-      var currentWordLowerCase = inputLineArray[inputLineArrayIndex].toLowerCase();
-      if (this.keywordToReplacementKeyword.hasOwnProperty(currentWordLowerCase))
+      var currentWord = inputLineArray[inputLineArrayIndex];
+      if (this.keywordToReplacementKeyword.hasOwnProperty(currentWord))
       {
-        var replacement = this.keywordToReplacementKeyword[currentWordLowerCase];
-        inputLine = inputLine.replace(new RegExp("\\b"+currentWordNormalCase+"\\b", 'g'), 
+        var replacement = this.keywordToReplacementKeyword[currentWord];
+        inputLine = inputLine.replace(new RegExp("\\b"+currentWord+"\\b", 'g'), 
           replacement);
         // TODO: only replaces first instance in array, fix...
         inputLineArray[inputLineArrayIndex] = replacement;
@@ -270,8 +271,7 @@ SpeechEngine.prototype =
     for (var inputLineArrayIndex = 0, inputLineArrayLength = inputLineArray.length;
       inputLineArrayIndex < inputLineArrayLength; inputLineArrayIndex++)
     {
-      var currentWordNormalCase = inputLineArray[inputLineArrayIndex];
-      var currentWord = currentWordNormalCase.toLowerCase();
+      var currentWord = inputLineArray[inputLineArrayIndex];
       console.log("word from parsed input line " + currentWord);
 
       // if keyword encountered
@@ -299,7 +299,7 @@ SpeechEngine.prototype =
           // key to see if on-the-fly replacement is required as well
           if (keywordRules.replacementKeyword != null)
           {
-            inputLine = inputLine.replace(new RegExp("\\b"+currentWordNormalCase+"\\b", 'g'), 
+            inputLine = inputLine.replace(new RegExp("\\b"+currentWord+"\\b", 'g'), 
               keywordRules.replacementKeyword);
             inputLineArray[inputLineArrayIndex] = keywordRules.replacementKeyword;
           }
@@ -316,7 +316,6 @@ SpeechEngine.prototype =
 
     console.log("Line after keyword processing and all replacements: " + inputLine);
 
-    //console.log("keystack: " + keywordRulesStack);
     for (var keywordStackIndex = 0, keywordStackLength = keywordRulesStack.length;
       keywordStackIndex < keywordStackLength; keywordStackIndex++)
     {

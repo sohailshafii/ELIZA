@@ -200,6 +200,7 @@ KeywordRules.prototype =
     var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
     var trimmedSpacesRegEx = /(^\s+|\s+$)/g;
 
+    // for consistency's sake, force to lower case
     inputLine = inputLine.toLowerCase();
 
     var memoryFunction = false;
@@ -265,7 +266,7 @@ KeywordRules.prototype =
               var tokenUsed = "";
               if (decompResult.length > realTokenIndex)
               {
-                tokenUsed = decompResult[realTokenIndex].toLowerCase().replace(trimmedSpacesRegEx, '');
+                tokenUsed = decompResult[realTokenIndex].replace(trimmedSpacesRegEx, '');
               }
               reconstructedLine += tokenUsed;
               // add any punctuation TODO: fix for multiple adjacent punctuation
