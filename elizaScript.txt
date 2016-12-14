@@ -219,6 +219,32 @@ key: I
 	enddecomp
 endkey
 
+key: YOUR
+	replace: MY
+	decomp: 0 MY 0
+		reassembly: Why are you concerned over my 2?
+		reassembly: What about your own 2?
+		reassembly: Are you worried about someone else's 2?
+		reassembly: Really, my 2?
+	enddecomp
+endkey
+
+key: ARE
+	decomp: 0 ARE I 0
+		reassembly: Why are you interested in whether I am 3 or not?
+		reassembly: Would you prefer if I weren't 3?
+		reassembly: Perhaps I am 3 in your wildest fantasies.
+		reassembly: Do you something think I am 3?
+		reassembly: = WHAT
+	enddecomp
+	decomp: 0 ARE 0
+		reassembly: Do you think they might not be 2?
+		reassembly: Would you like it if they were not 2?
+		reassembly: What if they were not 2?
+		reassembly: Possibly they are 2.
+	enddecomp
+endkey
+
 key: AM
 	replace: ARE
 	decomp: 0 ARE YOU 0
