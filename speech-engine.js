@@ -106,12 +106,14 @@ SpeechEngine.prototype =
       // if it contains a number, isolate that
       var rankRegExTest = /([^\d\s]+)\s+(\d+)/.exec(keywordPhrase);
       // equivalency
-      var equivRegExTest = /([^\d\s]+)\s*=\s*([^\d\s]+)/.exec(keywordPhrase);
+      var equivRegExTest = /([^\d\s]+)\s+([^\s]*)\s*=\s+([^\d\s]+)/.exec(keywordPhrase);
 
       if (equivRegExTest != null)
       {
         this.currentKeyword = equivRegExTest[1].toLowerCase();
-        this.createKeywordFromEquivalency(this.currentKeyword, equivRegExTest[2]);
+        var ranking = (equivRegExTest[2] == "") ? 0 : equivRegExTest[2];
+        this.createKeywordFromEquivalency(this.currentKeyword, 
+          equivRegExTest[3].toLowerCase(), ranking);
       }
       else
       {
@@ -181,18 +183,18 @@ SpeechEngine.prototype =
     }
   },
 
-  createKeywordFromEquivalency: function(keyword, keywordAlias)
+  createKeywordFromEquivalency: function(keyword, keywordAlias, ranking)
   {
     if (keywordAlias === null || keyword === null) return;
     if (!this.keywordToKeywordRules.hasOwnProperty(keyword))
     {
-      this.keywordToKeywordRules[keyword] = new keywordRulesRef(keyword, 0);
+      this.keywordToKeywordRules[keyword] = new keywordRulesRef(keyword, ranking);
     }
     var keywordRules = this.keywordToKeywordRules[keyword];
     if (this.keywordToKeywordRules.hasOwnProperty(keywordAlias))
     {
       var aliasKeywordRules = this.keywordToKeywordRules[keywordAlias];
-      keywordRules.setUpFromAlias(aliasKeywordRules);
+      keywordRules.setUpFromAlias(aliasKeywordRules, ranking);
     }
   },
 

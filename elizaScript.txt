@@ -287,4 +287,27 @@ endkey
 key: COMPUTERS = COMPUTER
 endkey
 
+key: EVERYONE 1
+	decomp: 0 (EVERYONE-EVERYBODY-NOBODY-NOONE) 0
+		reassembly: Really, 2?
+		reassembly: Surely not 2?
+		reassembly: Can you think of anyone in particular?
+		reassembly: Who, for example?
+		reassembly: You are thinking of a very special person.
+		reassembly: Who, may I ask?
+		reassembly: Someone special, perhaps?
+		reassembly: You have a paritcular person in mind, don't you?
+		reassembly: Who do you think you're talking about?
+	enddecomp
+endkey
+
+key: EVERYBODY 2 = EVERYONE
+endkey
+
+key: NOBODY 2 = EVERYONE
+endkey
+
+key: NOONE 2 = EVERYONE
+endkey
+
 

@@ -57,8 +57,7 @@ KeywordRules.prototype =
 {
   setUpFromAlias: function(aliasKeywordRules)
   {
-    this.ranking = aliasKeywordRules.ranking;
-    this.replacementKeyword = aliasKeywordRules.replacementKeyword;
+    this.replacementKeyword = aliasKeywordRules.keyword;
     this.decompArray = aliasKeywordRules.decompArray;
   },
 
@@ -78,6 +77,8 @@ KeywordRules.prototype =
     // if there are multiple, then a permutation of them need to be made
     // usually a family keyword is in the form /family
     var familyRegEx = /(\/\S+)/;
+    // in case we encounter OR'd versions...
+    var ordRegEx = /\((.+)\)/;
     var familyDelimiter = "!+!";
 
     var currRegEx = "^";
@@ -97,6 +98,13 @@ KeywordRules.prototype =
         // use an extra slash in front of /family to delineate with single slash tokens
         // in regex test
         currRegEx += familyDelimiter + "/" + currentToken + familyDelimiter;
+      }
+      else if (ordRegEx.test(currentToken))
+      {
+        var ordResult = ordRegEx.exec(currentToken);
+        // treat as special case of family
+        currRegEx += familyDelimiter + "++" + ordResult[1] 
+          + familyDelimiter;
       }
       else if (numberRegEx.test(currentToken))
       {
@@ -146,6 +154,24 @@ KeywordRules.prototype =
             newSpecialTokens[tokenIndex] = "(" + familyMembers[familyIndex] + ")";
             setupRegExPermutations(newSpecialTokens, keywordToFamily,
               decompositionRegExArray);
+          }
+        }
+        else 
+        {
+          // if no family tokens remain, test for OR'd versions
+          var testOrd = /\+\+(.+)/.exec(currentToken);
+          if (testOrd != null)
+          {
+            foundNewPermutation = true;
+            var ordTokens = testOrd[1].split("-");
+            var newSpecialTokens = specialTokens.slice();
+            for (var ordIndex = 0, ordLength = ordTokens.length;
+              ordIndex < ordLength; ordIndex++)
+            {
+              newSpecialTokens[tokenIndex] = "(" + ordTokens[ordIndex] + ")";
+              setupRegExPermutations(newSpecialTokens, keywordToFamily,
+                decompositionRegExArray);
+            }
           }
         }
       }
@@ -291,7 +317,8 @@ KeywordRules.prototype =
   print: function()
   {
     console.log("Keyword: " + this.keyword + ", ranking: " + this.ranking +
-      ", replacement: " + this.replacementKeyword + ". Num decomps: " + this.decompArray.length);
+      ", replacement: " + this.replacementKeyword + ". Num decomps: " + 
+      this.decompArray.length + ".");
     for (var decompIndex = 0, numDecomps = this.decompArray.length;
       decompIndex < numDecomps; decompIndex++)
     {
