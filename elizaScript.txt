@@ -287,6 +287,76 @@ endkey
 key: COMPUTERS = COMPUTER
 endkey
 
+key: I
+	replace: YOU
+	decomp: 0 YOU (WANT-NEED) 0
+		reassembly: What would it mean to you if you got 3?
+		reassembly: Why do you want 3?
+		reassembly: Suppose you got 3 soon?
+		reassembly: What if you never got 3?
+		reassembly: What would getting 3 mean to you?
+		reassembly: What does wanting 3 have to do with this discussion?
+	enddecomp
+	decomp: 0 ARE YOU (SAD-UNHAPPY-DEPRESSED-SICK) 0
+		reassembly: I am sorry to that you are are 4.
+		reassembly: Do you think coming here will help you not be 4?
+		reassembly: I'm sure it's not pleasant to be 4.
+		reassembly: Can you explain what made you 4?
+	enddecomp
+	decomp: 0 YOU ARE 0 (HAPPY-ELATED-GLAD-BETTER) 0
+		reassembly: How have I helped you to be 4?
+		reassembly: Has your treatment made you 4?
+		reassembly: What makes you 4 just now?
+		reassembly: Can you explain why you are suddenly 4?
+	enddecomp
+	decomp: 0 YOU WAS 0
+		reassembly: = WAS
+	enddecomp
+	decomp: 0 YOU /BELIEF YOU 0
+		reassembly: Do you really fucking think so?
+		reassembly: But you are not fucking sure you 4?
+		reassembly: Do you really doubt you 4?
+	endecomp
+	decomp: 0 YOU ARE 0
+		reassembly: Is it because you are 3 that you came to me?
+		reassembly: How long have you been 3?
+		reassembly: Do you believe it is normal to be 3?
+		reassembly: Do you enjoy being 3?
+	enddecomp
+	decomp: 0 YOU (CAN'T-CANNOT) 0
+		reassembly: How do you know you can't 3?
+		reassembly: Have you even fucking tried, you piece of shit?
+		reassembly: Perhaps you could 3 now?
+		reassembly: Do you really want to be able to 3?
+	enddecomp
+	decomp: 0 YOU DON'T 0
+		reassembly: Don't you really 3?
+		reassembly: Why don't you 3?
+		reassembly: Do you wish to be able to 3?
+		reassembly: Does that trouble you? You are soft on the inside?
+		reassembly: Do you wish to be able to 3?
+	endecomp
+	decomp: 0 YOU FEEL 0
+		reassembly: Tell me more about such feelings?
+		reassembly: Do you often feel 3?
+		reassembly: Do you enjoy feeling 3?
+		reassembly: Of what does feeling 3 remind you?
+	enddecomp
+	decomp: 0 YOU 0 I 0
+		reassembly: Perhaps in your wildest dreams we 3 each other.
+		reassembly: Do you wish 3 to me?
+		reassembly: You see to fucking need 3 to me.
+		reassembly: Do you 3 anyone else?
+	decomp: 0
+	# TODO: extract token 1 from 0???
+		reassembly: You say 1.
+		reassembly: Can you elaborate on that?
+		reassembly: Do you say 1 for some special reason?
+		reassembly: That's quite interesting!
+	enddecomp
+endkey
+
+
 key: EVERYONE 1
 	decomp: 0 (EVERYONE-EVERYBODY-NOBODY-NOONE) 0
 		reassembly: Really, 2?
