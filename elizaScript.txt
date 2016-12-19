@@ -78,6 +78,26 @@ key: WHAT
 	enddecomp
 endkey
 
+key: WHY
+	decomp: 0 WHY DON'T I 0
+		reassembly: Do you believe I don't 4.
+		reassembly: Perhaps I will 4 in good time.
+		reassembly: Should you 4 yourself?
+		reassembly: You want me to 4?
+		reassembly: = WHAT
+	enddecomp
+	decomp: 0 WHY CAN'T YOU 0
+		reassembly: Do you think you should be able to 4?
+		reassembly: Do you want to be able to 4?
+		reassembly: Do you believe this will help you to 4?
+		reassembly: Have you any idea why you can't 4?
+		reassembly: = WHAT
+	enddecomp
+	decomp: 0
+		reassembly: = WHAT
+	enddecomp
+endkey
+
 key: REMEMBER 5
 	decomp: 0 I REMEMBER 0
 		reassembly: Do you often think of 3?
@@ -343,19 +363,55 @@ key: I
 		reassembly: Of what does feeling 3 remind you?
 	enddecomp
 	decomp: 0 YOU 0 I 0
-		reassembly: Perhaps in your wildest dreams we 3 each other.
-		reassembly: Do you wish 3 to me?
-		reassembly: You see to fucking need 3 to me.
-		reassembly: Do you 3 anyone else?
+		reassembly: Perhaps in your wildest dreams we 2 each other.
+		reassembly: Do you wish 2 to me?
+		reassembly: You see to fucking need 2 to me.
+		reassembly: Do you 2 anyone else?
+	enddecomp
 	decomp: 0
-	# TODO: extract token 1 from 0???
-		reassembly: You say 1.
+		reassembly: You say 0.
 		reassembly: Can you elaborate on that?
-		reassembly: Do you say 1 for some special reason?
+		reassembly: Do you say 0 for some special reason?
 		reassembly: That's quite interesting!
 	enddecomp
 endkey
 
+key: YOU
+	replace: I
+	decomp: 0 I REMIND YOU OF 0
+		reassembly: = ALIKE
+	enddecomp
+	decomp: 0 I ARE 0
+		reassembly: What makes you think I am 3?
+		reassembly: Does it please you to believe I am 3?
+		reassembly: Do you somestimes wish you were 3?
+		reassembly: Perhaps you would like to be 3?
+	enddecomp
+	decomp: 0 I 0 YOU
+		reassembly: Why do you think I 3 you?
+		reassembly: You like to think I 3 you -- don't you?
+		reassembly: What makes you think I 3 you?
+		reassembly: Really, I 3 you?
+		reassembly: Do you wish to believe I 3 you?
+		reassembly: Suppose I did 3 you -- what would that mean?
+		reassembly: Does someone else believe I 3 you?
+	enddecomp
+	decomp: 0 I 0
+		reassembly: We were discussing you -- not me.
+		reassembly: 0, I 3?
+		reassembly: You're not really talking about me -- are you?
+		reasesmbly: What are you feelings now?
+	enddecomp
+endkey
+
+key: YES
+	decomp: 0
+		reassembly: You seem quite positive.
+		reassembly: You are sure?
+		reassembly: I see.
+		reassembly: I understand.
+	enddecomp
+endkey
 
 key: EVERYONE 1
 	decomp: 0 (EVERYONE-EVERYBODY-NOBODY-NOONE) 0
@@ -368,6 +424,55 @@ key: EVERYONE 1
 		reassembly: Someone special, perhaps?
 		reassembly: You have a paritcular person in mind, don't you?
 		reassembly: Who do you think you're talking about?
+	enddecomp
+endkey
+
+key: NO
+	decomp: 0
+		reassembly: Are you saying 'no' just to be negative?
+		reassembly: You are being a bit negative.
+		reassembly: Why not?
+		reassembly: Why 'no?'
+	enddecomp
+endkey
+
+key: BECAUSE
+	decomp: 0
+		reassembly: Is that the real reason?
+		reassembly: Don't any other reasons come to mind?
+		reassembly: Does that reason seem to explain anything?
+		reassembly: What other reasons might there be?
+	enddecomp
+endkey
+
+key: ALWAYS 1
+	decomp: 0
+		reassembly: Can you think of a specific example?
+		reassembly: When?
+		reassembly: What incident are you thinking of?
+		reassembly: Really, always?
+	enddecomp
+endkey
+
+key: ALIKE
+	decomp: 0
+		reassembly: In what way?
+		reassembly: What resemblance do you see?
+		reassembly: What does that similarity suggest to you?
+		reassembly: What other connections do you see?
+		reassembly: What do you suppose that resemblance means?
+		reassembly: What is the connection, do you suppose?
+		reassembly: Could there really be some connection?
+		reassembly: How?
+	decomp
+endkey
+
+key: LIKE 10
+	decomp: 0 (AM-IS-ARE-WAS) 0 LIKE 0
+		reassembly: = ALIKE
+	enddecomp
+	decomp: 0
+		reassembly: NEWKEY
 	enddecomp
 endkey
 
