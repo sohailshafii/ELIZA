@@ -223,7 +223,7 @@ KeywordRules.prototype =
   {
     var reconstructedLine = null;
     var numberRegEx = /^(\d+)/;
-    var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
+    var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]+/;
     var trimmedSpacesRegEx = /(^\s+|\s+$)/g;
 
     // for consistency's sake, force to lower case
@@ -251,6 +251,8 @@ KeywordRules.prototype =
       var decompRules = decompsThatWork[randomIndex];
       var decompRegEx = new RegExp(decompRules.decompositionRegExString);
       var decompResult = decompRegEx.exec(inputLine);
+
+      console.log("Decomp used: " + decompRegEx);
 
       // create a reconstruction
       var reconstructionToBeUsed = decompRules.getNextReconstruction();
@@ -295,7 +297,7 @@ KeywordRules.prototype =
                 tokenUsed = decompResult[realTokenIndex].replace(trimmedSpacesRegEx, '');
               }
               reconstructedLine += tokenUsed;
-              // add any punctuation TODO: fix for multiple adjacent punctuation
+              // add any punctuation 
               var punctuationMatch = punctuationRegEx.exec(currentReconToken);
               if (punctuationMatch !== null)
               {
