@@ -73,7 +73,7 @@ KeywordRules.prototype =
     // use lazy version as first token, just so that we don't match other items near the end of the 
     // string
     var nonPunctuationLazy = "([^.,\/#!?$%\\^&\\*;:{}=\\-_`~()]*?)";
-    var spaces = "\\s+";
+    var spaces = "\\s*";
     var numberRegEx = /^\d+/;
     // if there is a family keyword, need to make an array of reg ex
     // if there are multiple, then a permutation of them need to be made
@@ -255,8 +255,10 @@ KeywordRules.prototype =
       var decompRules = this.decompArray[decompIndex];
       var decompRegEx = new RegExp(decompRules.decompositionRegExString);
       var decompTest = decompRegEx.test(inputLine);
+      console.log("candidate decomp: " + decompRegEx);
       if (decompTest)
       {
+        console.log("possible decomp: " + decompRegEx);
         decompsThatWork.push(decompRules);
       }
     }
@@ -295,11 +297,9 @@ KeywordRules.prototype =
         else 
         {
           reconstructedLine = "";
-          console.log("Reconstruction rule: " + rule);
           for (var tokenIndex = 0, numTokens = rule.length; tokenIndex < numTokens; tokenIndex++)
           {
             var currentReconToken = rule[tokenIndex];
-            console.log("Current reconstruction rule token: " + currentReconToken);
             if (tokenIndex > 0) reconstructedLine += " ";
             // if it's a number, look up token in original line
             if (numberRegEx.test(currentReconToken))
@@ -314,18 +314,15 @@ KeywordRules.prototype =
               {
                 tokenUsed = decompResult[realTokenIndex].replace(trimmedSpacesRegEx, '');
               }
-              console.log("Token used: " + tokenUsed);
               reconstructedLine += tokenUsed;
               // add any punctuation 
               var punctuationMatch = punctuationRegEx.exec(currentReconToken);
               if (punctuationMatch !== null)
               {
-                console.log("punctuation: " + punctuationMatch);
                 reconstructedLine += punctuationMatch;
               }
             }
             else {
-              console.log("other: " + currentReconToken);
               reconstructedLine += currentReconToken;
             }
           }
