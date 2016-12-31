@@ -80,7 +80,7 @@ endkey
 
 key: WHY
 	decomp: 0 WHY DON'T I 0
-		reassembly: Do you believe I don't 4.
+		reassembly: Do you believe I don't 4?
 		reassembly: Perhaps I will 4 in good time.
 		reassembly: Should you 4 yourself?
 		reassembly: You want me to 4?
@@ -388,17 +388,17 @@ key: YOU
 		reassembly: Perhaps you would like to be 3?
 	enddecomp
 	decomp: 0 I 0 YOU
-		reassembly: Why do you think I 3 you?
-		reassembly: You like to think I 3 you -- don't you?
-		reassembly: What makes you think I 3 you?
-		reassembly: Really, I 3 you?
-		reassembly: Do you wish to believe I 3 you?
+		reassembly: Why do you think I 2 you?
+		reassembly: You like to think I 2 you -- don't you?
+		reassembly: What makes you think I 2 you?
+		reassembly: Really, I 2 you?
+		reassembly: Do you wish to believe I 2 you?
 		reassembly: Suppose I did 3 you -- what would that mean?
-		reassembly: Does someone else believe I 3 you?
+		reassembly: Does someone else believe I 2 you?
 	enddecomp
 	decomp: 0 I 0
 		reassembly: We were discussing you -- not me.
-		reassembly: 0, I 3?
+		reassembly: 0, I 2?
 		reassembly: You're not really talking about me -- are you?
 		reasesmbly: What are you feelings now?
 	enddecomp

@@ -132,7 +132,8 @@ SpeechEngine.prototype =
     }
     else if (replaceTest != null)
     {
-      this.keywordToKeywordRules[this.currentKeyword].replacementKeyword = replaceTest[1].replace(trimmedSpacesRegEx, '').toLowerCase();
+      var replacement = replaceTest[1].replace(trimmedSpacesRegEx, '').toLowerCase();
+      this.keywordToKeywordRules[this.currentKeyword].replacementKeyword = replacement;
     }
     else if (decompTest != null)
     {
@@ -194,7 +195,7 @@ SpeechEngine.prototype =
     if (this.keywordToKeywordRules.hasOwnProperty(keywordAlias))
     {
       var aliasKeywordRules = this.keywordToKeywordRules[keywordAlias];
-      keywordRules.setUpFromAlias(aliasKeywordRules, ranking);
+      keywordRules.setUpFromAlias(aliasKeywordRules);
     }
   },
 
@@ -348,6 +349,21 @@ SpeechEngine.prototype =
         var randomIndex = parseInt(Math.random()*this.contentFreeRemarks.length);
         outputLine = this.contentFreeRemarks[randomIndex];
       }
+    }
+
+    // since we always convert the user's input into lowercase, we might use their input
+    // to construct the beginning of the output line. make sure that first letter is always
+    // uppercase. also make sure that "I" is always capitalized
+    if (outputLine != null && outputLine.length > 0)
+    {
+
+      console.log("done: " + outputLine);
+      var capitalizedChar = outputLine[0].toUpperCase();
+      outputLine = outputLine.replace(/^./, capitalizedChar);
+      // make sure individual Is are capitalized. even ones adjacent to punctuation.
+      outputLine = outputLine.replace(/\si\s/g, " I ");
+      outputLine = outputLine.replace(/\s(i)([.,\/#!?$%\^&\*;:{}=\\-_`~()])/, " I$2");
+      outputLine = outputLine.replace(/([.,\/#!?$%\^&\*;:{}=\\-_`~()])(i)\s/, "$1I ");
     }
 
     return outputLine;

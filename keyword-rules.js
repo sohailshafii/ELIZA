@@ -57,7 +57,6 @@ KeywordRules.prototype =
 {
   setUpFromAlias: function(aliasKeywordRules)
   {
-    this.replacementKeyword = aliasKeywordRules.keyword;
     this.decompArray = aliasKeywordRules.decompArray;
   },
 
@@ -71,7 +70,10 @@ KeywordRules.prototype =
     var decompositionArray = decompositionString.split(" ");
     // all regexes are separated into groups
     var nonPunctuation = "([^.,\/#!?$%\\^&\\*;:{}=\\-_`~()]*)";
-    var spaces = "\\s*";
+    // use lazy version as first token, just so that we don't match other items near the end of the 
+    // string
+    var nonPunctuationLazy = "([^.,\/#!?$%\\^&\\*;:{}=\\-_`~()]*?)";
+    var spaces = "\\s+";
     var numberRegEx = /^\d+/;
     // if there is a family keyword, need to make an array of reg ex
     // if there are multiple, then a permutation of them need to be made
@@ -81,12 +83,23 @@ KeywordRules.prototype =
     var ordRegEx = /\((.+)\)/;
     var familyDelimiter = "!+!";
 
+
+      if (this.keyword == "you")
+      {
+        console.log("decomp string: " + decompositionString);
+        console.log("decomp array: " + decompositionArray);
+      }
+
     var currRegEx = "^";
     // create regex out of tokens in decomposition
     for (var tokenIndex = 0, numTokens = decompositionArray.length;
       tokenIndex < numTokens; tokenIndex++)
     {
       var currentToken = decompositionArray[tokenIndex];
+      if (this.keyword == "you")
+      {
+        console.log("Current token: " + currentToken);
+      }
       // space before second token
       if (tokenIndex >= 1)
       {
@@ -112,14 +125,14 @@ KeywordRules.prototype =
         // an indifinite number of words
         if (numWords == 0)
         {
-          currRegEx += nonPunctuation;
+          currRegEx += (tokenIndex == 0 ? nonPunctuationLazy : nonPunctuation);
         }
         else {
           // a certain number of words separated by spaces
           for (var wordIndex = 0; wordIndex < numWords; wordIndex++)
           {
             if (wordIndex > 0) decompositionRegExString += spaces;
-            currRegEx += nonPunctuation;
+            currRegEx += (tokenIndex == 0 ? nonPunctuationLazy: nonPunctuation);
           }
         }
       }
@@ -206,7 +219,11 @@ KeywordRules.prototype =
       {
         equivalentKeyword = equivaResult[1].toLowerCase();
       }
-
+      if (this.keyword == "you")
+      {
+        console.log("reconstr: " + currentReconstr);
+        console.log("reconstr: " + currentReconstr.split(" "));
+      }
       reconsArray.push(new ReconstructionRule(currentReconstr.split(" "), equivalentKeyword));
     }
 
@@ -252,7 +269,7 @@ KeywordRules.prototype =
       var decompRegEx = new RegExp(decompRules.decompositionRegExString);
       var decompResult = decompRegEx.exec(inputLine);
 
-      console.log("Decomp used: " + decompRegEx);
+      console.log("Decomp used: " + decompRegEx + ", result: " + decompResult);
 
       // create a reconstruction
       var reconstructionToBeUsed = decompRules.getNextReconstruction();
@@ -278,6 +295,7 @@ KeywordRules.prototype =
         else 
         {
           reconstructedLine = "";
+          console.log("Reconstruction rule: " + rule);
           for (var tokenIndex = 0, numTokens = rule.length; tokenIndex < numTokens; tokenIndex++)
           {
             var currentReconToken = rule[tokenIndex];
@@ -296,15 +314,18 @@ KeywordRules.prototype =
               {
                 tokenUsed = decompResult[realTokenIndex].replace(trimmedSpacesRegEx, '');
               }
+              console.log("Token used: " + tokenUsed);
               reconstructedLine += tokenUsed;
               // add any punctuation 
               var punctuationMatch = punctuationRegEx.exec(currentReconToken);
               if (punctuationMatch !== null)
               {
+                console.log("punctuation: " + punctuationMatch);
                 reconstructedLine += punctuationMatch;
               }
             }
             else {
+              console.log("other: " + currentReconToken);
               reconstructedLine += currentReconToken;
             }
           }
