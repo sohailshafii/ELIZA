@@ -12,9 +12,9 @@ ReconstructionRule.prototype =
   }
 };
 
-function Reconstructions (decompositionRegExString, reconstructionList, memoryFunction)
+function Reconstructions (decompositionRegEx, reconstructionList, memoryFunction)
 {
-  this.decompositionRegExString = decompositionRegExString;
+  this.decompositionRegEx = decompositionRegEx;
   this.reconstructionList = reconstructionList;
   this.nextReconstructionToBeUsed = 0;
   this.memoryFunction = memoryFunction;
@@ -33,7 +33,7 @@ Reconstructions.prototype =
 
   print: function()
   {
-    console.log("Decomposition reg ex: " + this.decompositionRegExString + ", memory?: " + this.memoryFunction + ".");
+    console.log("Decomposition reg ex: " + this.decompositionRegEx + ", memory?: " + this.memoryFunction + ".");
     for (var reconsIndex = 0, numRecons = this.reconstructionList.length; reconsIndex < numRecons;
         reconsIndex++)
     {
@@ -83,23 +83,12 @@ KeywordRules.prototype =
     var ordRegEx = /\((.+)\)/;
     var familyDelimiter = "!+!";
 
-
-      if (this.keyword == "you")
-      {
-        console.log("decomp string: " + decompositionString);
-        console.log("decomp array: " + decompositionArray);
-      }
-
     var currRegEx = "^";
     // create regex out of tokens in decomposition
     for (var tokenIndex = 0, numTokens = decompositionArray.length;
       tokenIndex < numTokens; tokenIndex++)
     {
       var currentToken = decompositionArray[tokenIndex];
-      if (this.keyword == "you")
-      {
-        console.log("Current token: " + currentToken);
-      }
       // space before second token
       if (tokenIndex >= 1)
       {
@@ -219,11 +208,6 @@ KeywordRules.prototype =
       {
         equivalentKeyword = equivaResult[1].toLowerCase();
       }
-      if (this.keyword == "you")
-      {
-        console.log("reconstr: " + currentReconstr);
-        console.log("reconstr: " + currentReconstr.split(" "));
-      }
       reconsArray.push(new ReconstructionRule(currentReconstr.split(" "), equivalentKeyword));
     }
 
@@ -231,7 +215,7 @@ KeywordRules.prototype =
     for (var decompIndex = 0, numDecomps = decompositionRegExArray.length;
         decompIndex < numDecomps; decompIndex++)
     {
-      this.decompArray.push(new Reconstructions(decompositionRegExArray[decompIndex],
+      this.decompArray.push(new Reconstructions(new RegExp(decompositionRegExArray[decompIndex]),
         reconsArray, memoryFunction));
     }
   },
@@ -253,7 +237,7 @@ KeywordRules.prototype =
       decompIndex < numDecomps; decompIndex++)
     {
       var decompRules = this.decompArray[decompIndex];
-      var decompRegEx = new RegExp(decompRules.decompositionRegExString);
+      var decompRegEx = decompRules.decompositionRegEx;
       var decompTest = decompRegEx.test(inputLine);
       console.log("candidate decomp: " + decompRegEx);
       if (decompTest)
@@ -268,7 +252,7 @@ KeywordRules.prototype =
     {
       var randomIndex = parseInt(Math.random()*decompsThatWork.length);
       var decompRules = decompsThatWork[randomIndex];
-      var decompRegEx = new RegExp(decompRules.decompositionRegExString);
+      var decompRegEx = decompRules.decompositionRegEx;
       var decompResult = decompRegEx.exec(inputLine);
 
       console.log("Decomp used: " + decompRegEx + ", result: " + decompResult);
