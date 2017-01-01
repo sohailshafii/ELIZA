@@ -60,6 +60,7 @@ KeywordRules.prototype =
     this.decompArray = aliasKeywordRules.decompArray;
   },
 
+  // TODO: consider using word boundary, i.e. \b, in regexs
   addDecompAndReconstructions: function(allKeywordToKeywordRules,
     decompositionString, reconstructionStrings, memoryFunction, keywordToFamily)
   {
