@@ -61,6 +61,8 @@ KeywordRules.prototype =
   },
 
   // TODO: consider using word boundary, i.e. \b, in regexs
+  // TODO: Situation around “i” does not work. Like “I am sad” or 
+  // “I usually win at blackjack.” goes with second “i.” always
   addDecompAndReconstructions: function(allKeywordToKeywordRules,
     decompositionString, reconstructionStrings, memoryFunction, keywordToFamily)
   {
