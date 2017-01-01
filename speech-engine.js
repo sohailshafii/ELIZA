@@ -248,7 +248,6 @@ SpeechEngine.prototype =
     var outputLine = null;
     var currentMaxRanking = -1;
     var keywordRulesStack = [];
-    var keywordsUsed = {};
     
     // make case consistent throughout function
     inputLine = inputLine.toLowerCase();
@@ -266,7 +265,6 @@ SpeechEngine.prototype =
         var replacement = this.keywordToReplacementKeyword[currentWord];
         inputLine = inputLine.replace(new RegExp("\\b"+currentWord+"\\b", 'g'), 
           replacement);
-        // TODO: only replaces first instance in array, fix...
         inputLineArray[inputLineArrayIndex] = replacement;
       }
     }
@@ -281,9 +279,17 @@ SpeechEngine.prototype =
       if (this.keywordToKeywordRules.hasOwnProperty(currentWord))
       {
         var keywordRules = this.keywordToKeywordRules[currentWord];
+
+        // key to see if on-the-fly replacement is required
+        if (keywordRules.replacementKeyword != null)
+        {
+          inputLine = inputLine.replace(new RegExp("\\b"+currentWord+"\\b", 'g'), 
+            keywordRules.replacementKeyword);
+          inputLineArray[inputLineArrayIndex] = keywordRules.replacementKeyword;
+        }
         
         // include keyword in stack only once
-        if (!keywordsUsed.hasOwnProperty(currentWord))
+        if (keywordRulesStack.indexOf(currentWord) == -1)
         {
           var newRankingIsGreater = keywordRules.ranking > currentMaxRanking;
           
@@ -296,15 +302,6 @@ SpeechEngine.prototype =
           else
           {
             keywordRulesStack.push(keywordRules);
-          }
-          keywordsUsed[currentWord] = currentWord;
-
-          // key to see if on-the-fly replacement is required as well
-          if (keywordRules.replacementKeyword != null)
-          {
-            inputLine = inputLine.replace(new RegExp("\\b"+currentWord+"\\b", 'g'), 
-              keywordRules.replacementKeyword);
-            inputLineArray[inputLineArrayIndex] = keywordRules.replacementKeyword;
           }
     	 }
       }
