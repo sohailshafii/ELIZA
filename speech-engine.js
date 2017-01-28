@@ -210,33 +210,33 @@ SpeechEngine.prototype =
   tokenizeBasedOnSpaceAndPunctuation: function(inputLine)
   {
     var currentInputLineArray = [];
-    var newWordNotFound = true;
+    var processingAWord = false;
     var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
     var spaceRegEx = /\s/;
+
     for (var inputLineIndex = 0, inputLineLength = inputLine.length;
       inputLineIndex < inputLineLength; inputLineIndex++)
     {
       var currentCharacter = inputLine[inputLineIndex];
       // skip spaces and indicate that we are going to encounter a new word
       if (spaceRegEx.test(currentCharacter)) 
-      { newWordNotFound = true; continue; }
+      { processingAWord = false; continue; }
 
+      // punctuation ends words
       if (punctuationRegEx.test(currentCharacter))
       {
         currentInputLineArray.push(currentCharacter);
-        newWordNotFound = true;
+        processingAWord = false;
       }
-      // if we have not encountered a space or punctuation mark,
-      // and have not encountered a new word so far, it then we must be 
-      // on a new word now
-      else if (newWordNotFound)
+      // if we haven't found a new word, then start one. 
+      else if (!processingAWord)
       {
         currentInputLineArray.push(currentCharacter);
-        newWordNotFound = false;
+        processingAWord = true;
       }
       else
       {
-        // append character to current word
+        // else just append character to current word
         currentInputLineArray[currentInputLineArray.length-1] += currentCharacter;
       }
     }
@@ -252,6 +252,7 @@ SpeechEngine.prototype =
     // make case consistent throughout function
     inputLine = inputLine.toLowerCase();
     var inputLineArray = this.tokenizeBasedOnSpaceAndPunctuation(inputLine);
+    console.log("Tokenized input line: " + inputLineArray + ".");
     var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
 
     // do all on-the-fly replacements here

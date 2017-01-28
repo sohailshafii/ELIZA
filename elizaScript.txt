@@ -41,7 +41,6 @@ content-free: I am not sure I understand you fully.
 content-free: Please, go on.
 content-free: What does that suggest to you?
 content-free: Do you feel strongly about such things?
-content-free: You're an ass.
 
 # script rules
 # keyword/decomp/etc don't have to uppercase. I just made it that way
