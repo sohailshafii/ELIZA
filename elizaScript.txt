@@ -332,8 +332,8 @@ key: I
 		reassembly: = WAS
 	enddecomp
 	decomp: 0 YOU /BELIEF YOU 0
-		reassembly: Do you really fucking think so?
-		reassembly: But you are not fucking sure you 4?
+		reassembly: Do you really think so?
+		reassembly: But you are not sure you 4?
 		reassembly: Do you really doubt you 4?
 	endecomp
 	decomp: 0 YOU ARE 0
@@ -344,7 +344,7 @@ key: I
 	enddecomp
 	decomp: 0 YOU (CAN'T-CANNOT) 0
 		reassembly: How do you know you can't 3?
-		reassembly: Have you even fucking tried, you piece of shit?
+		reassembly: Have you even tried?
 		reassembly: Perhaps you could 3 now?
 		reassembly: Do you really want to be able to 3?
 	enddecomp
@@ -364,7 +364,7 @@ key: I
 	decomp: 0 YOU 0 I 0
 		reassembly: Perhaps in your wildest dreams we 2 each other.
 		reassembly: Do you wish 2 to me?
-		reassembly: You see to fucking need 2 to me.
+		reassembly: You see to need 2 to me.
 		reassembly: Do you 2 anyone else?
 	enddecomp
 	decomp: 0
