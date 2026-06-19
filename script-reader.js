@@ -11,6 +11,7 @@ ScriptReader.prototype =
     try {
       var fileData = fs.readFileSync(this.scriptFileName, 'utf8');
       var lines = fileData.split('\n');
+      speechEngine.debugMode = debugMode;
       speechEngine.analyzeScript(lines);
     } 
     catch(e) 
