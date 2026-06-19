@@ -113,18 +113,23 @@ KeywordRules.prototype =
       else if (numberRegEx.test(currentToken))
       {
         var numWords = parseInt(currentToken);
-        // an indifinite number of words
         if (numWords == 0)
         {
+          // "0": any number of words (including none)
           currRegEx += (tokenIndex == 0 ? nonPunctuationLazy : nonPunctuation);
         }
-        else {
-          // a certain number of words separated by spaces
-          for (var wordIndex = 0; wordIndex < numWords; wordIndex++)
+        else
+        {
+          // "n" (n > 0): exactly n whitespace-separated words, captured as a
+          // single group so this element still maps to one reassembly fragment
+          // number. A word is a run of non-space, non-punctuation characters.
+          var singleWord = "[^.,\/#!?$%\\^&\\*;:{}=\\-_`~()\\s]+";
+          var nWordGroup = "(" + singleWord;
+          for (var wordIndex = 1; wordIndex < numWords; wordIndex++)
           {
-            if (wordIndex > 0) decompositionRegExString += spaces;
-            currRegEx += (tokenIndex == 0 ? nonPunctuationLazy: nonPunctuation);
+            nWordGroup += "\\s+" + singleWord;
           }
+          currRegEx += nWordGroup + ")";
         }
       }
       else
