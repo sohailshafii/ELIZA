@@ -202,7 +202,7 @@ key: YOUR
 		reassembly: What about your own 3?
 		reassembly: Are you worried about someone else's 3?
 		reassembly: Really, my 3?
-	enddecmp
+	enddecomp
 endkey
 
 key: WAS 2
@@ -335,7 +335,7 @@ key: I
 		reassembly: Do you really think so?
 		reassembly: But you are not sure you 4?
 		reassembly: Do you really doubt you 4?
-	endecomp
+	enddecomp
 	decomp: 0 YOU ARE 0
 		reassembly: Is it because you are 3 that you came to me?
 		reassembly: How long have you been 3?
@@ -354,7 +354,7 @@ key: I
 		reassembly: Do you wish to be able to 3?
 		reassembly: Does that trouble you? You are soft on the inside?
 		reassembly: Do you wish to be able to 3?
-	endecomp
+	enddecomp
 	decomp: 0 YOU FEEL 0
 		reassembly: Tell me more about such feelings?
 		reassembly: Do you often feel 3?
@@ -399,7 +399,7 @@ key: YOU
 		reassembly: We were discussing you -- not me.
 		reassembly: 0, I 2?
 		reassembly: You're not really talking about me -- are you?
-		reasesmbly: What are you feelings now?
+		reassembly: What are you feelings now?
 	enddecomp
 endkey
 
@@ -463,7 +463,7 @@ key: ALIKE
 		reassembly: What is the connection, do you suppose?
 		reassembly: Could there really be some connection?
 		reassembly: How?
-	decomp
+	enddecomp
 endkey
 
 key: LIKE 10

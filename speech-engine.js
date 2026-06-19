@@ -156,6 +156,10 @@ SpeechEngine.prototype =
       this.currentKeyword = null;
       this.currentDecompRule = null;
       this.replaceRule = null;
+      // Reset any reconstructions/memory left over from an unterminated
+      // decomp so they cannot leak into the next keyword's first decomp.
+      this.currentReconstructions = [];
+      this.memoryFunction = false;
     }
     else if (foundMemoryLine)
     {
