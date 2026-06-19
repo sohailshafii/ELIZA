@@ -355,7 +355,11 @@ SpeechEngine.prototype =
       var currentKeywordRules = keywordRulesStack[keywordStackIndex];
       var currentAttempt = currentKeywordRules.attemptReconstruction(selectedPhrase, this.debugMode);
       if (this.debugMode) console.log("keyword " + currentKeywordRules.keyword + " attempt " + currentAttempt);
-      if (currentAttempt !== null)
+      // attemptReconstruction returns null when it gives up on this keyword
+      // (NEWKEY), or [line, memory] where line is null if no decomposition
+      // matched. In both no-result cases, fall through to the next (lower
+      // ranked) keyword in the stack instead of stopping here.
+      if (currentAttempt !== null && currentAttempt[0] !== null)
       {
         // memory function?
         if (currentAttempt[1])
