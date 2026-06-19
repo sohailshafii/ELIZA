@@ -259,73 +259,98 @@ SpeechEngine.prototype =
     console.log("Tokenized input line: " + inputLineArray + ".");
     var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
 
-    // do all on-the-fly replacements here
-    // note that we convert everything to lower-case by default
+    // do all on-the-fly pre-replacements here (e.g. "dont" -> "don't",
+    // "me" -> "you"); everything is already lower-case
     for (var inputLineArrayIndex = 0, inputLineArrayLength = inputLineArray.length;
       inputLineArrayIndex < inputLineArrayLength; inputLineArrayIndex++)
     {
       var currentWord = inputLineArray[inputLineArrayIndex];
       if (this.keywordToReplacementKeyword.hasOwnProperty(currentWord))
       {
-        var replacement = this.keywordToReplacementKeyword[currentWord];
-        inputLine = inputLine.replace(new RegExp("\\b"+currentWord+"\\b", 'g'), 
-          replacement);
-        inputLineArray[inputLineArrayIndex] = replacement;
+        inputLineArray[inputLineArrayIndex] = this.keywordToReplacementKeyword[currentWord];
       }
     }
 
-    for (var inputLineArrayIndex = 0, inputLineArrayLength = inputLineArray.length;
-      inputLineArrayIndex < inputLineArrayLength; inputLineArrayIndex++)
+    // Segment the input at punctuation and decompose only a single phrase.
+    // ELIZA scans left to right; the first clause that yields a keyword is the
+    // one it answers, and earlier keyword-less clauses are discarded. This
+    // matters because a decomposition pattern cannot match across punctuation,
+    // so feeding it the whole line (e.g. a leading "Well, ...") would block
+    // every pattern and force a content-free fallback.
+    var phraseWords = [];
+    var selectedPhrase = null;
+
+    for (var tokenIndex = 0, numTokens = inputLineArray.length;
+      tokenIndex <= numTokens; tokenIndex++)
     {
-      var currentWord = inputLineArray[inputLineArrayIndex];
-      console.log("word from parsed input line " + currentWord);
+      var currentToken = (tokenIndex < numTokens) ? inputLineArray[tokenIndex] : null;
+      var atPhraseBoundary = (currentToken === null) ||
+        punctuationRegEx.test(currentToken);
 
-      // if keyword encountered
-      if (this.keywordToKeywordRules.hasOwnProperty(currentWord))
+      if (!atPhraseBoundary)
       {
-        var keywordRules = this.keywordToKeywordRules[currentWord];
+        var currentWord = currentToken;
 
-        // key to see if on-the-fly replacement is required
-        if (keywordRules.replacementKeyword != null)
+        // if keyword encountered
+        if (this.keywordToKeywordRules.hasOwnProperty(currentWord))
         {
-          inputLine = inputLine.replace(new RegExp("\\b"+currentWord+"\\b", 'g'), 
-            keywordRules.replacementKeyword);
-          inputLineArray[inputLineArrayIndex] = keywordRules.replacementKeyword;
+          var keywordRules = this.keywordToKeywordRules[currentWord];
+
+          // on-the-fly keyword replacement (e.g. "my" -> "your", "i" -> "you")
+          if (keywordRules.replacementKeyword != null)
+          {
+            currentWord = keywordRules.replacementKeyword;
+          }
+
+          // include each keyword once, highest ranking first
+          var alreadyStacked = false;
+          for (var stackIndex = 0; stackIndex < keywordRulesStack.length; stackIndex++)
+          {
+            if (keywordRulesStack[stackIndex].keyword === keywordRules.keyword)
+            {
+              alreadyStacked = true;
+              break;
+            }
+          }
+          if (!alreadyStacked)
+          {
+            var ranking = parseInt(keywordRules.ranking);
+            if (ranking > currentMaxRanking)
+            {
+              // highest ranked items at beginning
+              currentMaxRanking = ranking;
+              keywordRulesStack.splice(0, 0, keywordRules);
+            }
+            else
+            {
+              keywordRulesStack.push(keywordRules);
+            }
+          }
         }
-        
-        // include keyword in stack only once
-        if (keywordRulesStack.indexOf(currentWord) == -1)
-        {
-          var newRankingIsGreater = keywordRules.ranking > currentMaxRanking;
-          
-          if (newRankingIsGreater)
-          {
-            // highest ranked items at beginning
-            currentMaxRanking = keywordRules.ranking;
-            keywordRulesStack.splice(0, 0, keywordRules);
-          }
-          else
-          {
-            keywordRulesStack.push(keywordRules);
-          }
-    	 }
+
+        phraseWords.push(currentWord);
+        continue;
       }
 
-      // if we hit punctuation, then stop if keystack is not empty
-      // this means that we stop if we have keywords for the current sentence
-      if (punctuationRegEx.test(currentWord) && keywordRulesStack.length > 0)
+      // At a phrase boundary (punctuation or end of input): the first clause
+      // that contains a keyword is the one we answer.
+      if (keywordRulesStack.length > 0)
       {
+        selectedPhrase = phraseWords.join(" ");
         break;
       }
+      // No keyword in this clause -- discard it and scan the next one.
+      phraseWords = [];
+      currentMaxRanking = -1;
     }
 
-    console.log("Line after keyword processing and all replacements: " + inputLine);
+    console.log("Selected phrase for reconstruction: " + selectedPhrase);
 
     for (var keywordStackIndex = 0, keywordStackLength = keywordRulesStack.length;
       keywordStackIndex < keywordStackLength; keywordStackIndex++)
     {
       var currentKeywordRules = keywordRulesStack[keywordStackIndex];
-      var currentAttempt = currentKeywordRules.attemptReconstruction(inputLine);
+      var currentAttempt = currentKeywordRules.attemptReconstruction(selectedPhrase);
       console.log("keyword " + currentKeywordRules.keyword + " attempt " + currentAttempt);
       if (currentAttempt !== null)
       {
