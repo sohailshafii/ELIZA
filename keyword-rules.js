@@ -223,7 +223,7 @@ KeywordRules.prototype =
     }
   },
 
-  attemptReconstruction: function(inputLine)
+  attemptReconstruction: function(inputLine, debugMode)
   {
     var reconstructedLine = null;
     var numberRegEx = /^(\d+)/;
@@ -242,10 +242,10 @@ KeywordRules.prototype =
       var decompRules = this.decompArray[decompIndex];
       var decompRegEx = decompRules.decompositionRegEx;
       var decompTest = decompRegEx.test(inputLine);
-      console.log("candidate decomp: " + decompRegEx);
+      if (debugMode) console.log("candidate decomp: " + decompRegEx);
       if (decompTest)
       {
-        console.log("possible decomp: " + decompRegEx);
+        if (debugMode) console.log("possible decomp: " + decompRegEx);
         decompsThatWork.push(decompRules);
       }
     }
@@ -258,7 +258,7 @@ KeywordRules.prototype =
       var decompRegEx = decompRules.decompositionRegEx;
       var decompResult = decompRegEx.exec(inputLine);
 
-      console.log("Decomp used: " + decompRegEx + ", result: " + decompResult);
+      if (debugMode) console.log("Decomp used: " + decompRegEx + ", result: " + decompResult);
 
       // create a reconstruction
       var reconstructionToBeUsed = decompRules.getNextReconstruction();
@@ -278,7 +278,7 @@ KeywordRules.prototype =
         if (equivalentKeyword != null)
         {
           var equivalentkeywordRules = this.allKeywordToKeywordRules[equivalentKeyword];
-          return equivalentkeywordRules.attemptReconstruction(inputLine);
+          return equivalentkeywordRules.attemptReconstruction(inputLine, debugMode);
         }
         // otherwise, do reconstruction as usual
         else 

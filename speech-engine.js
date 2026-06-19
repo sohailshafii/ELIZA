@@ -10,6 +10,9 @@ function SpeechEngine(){
   this.goodByeLines = [];
   this.contentFreeRemarks = [];
   this.memoryStack = [];
+
+  // when true, analysis prints step-by-step tracing to the console
+  this.debugMode = false;
 }
 
 SpeechEngine.prototype =
@@ -256,7 +259,7 @@ SpeechEngine.prototype =
     // make case consistent throughout function
     inputLine = inputLine.toLowerCase();
     var inputLineArray = this.tokenizeBasedOnSpaceAndPunctuation(inputLine);
-    console.log("Tokenized input line: " + inputLineArray + ".");
+    if (this.debugMode) console.log("Tokenized input line: " + inputLineArray + ".");
     var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
 
     // do all on-the-fly pre-replacements here (e.g. "dont" -> "don't",
@@ -344,14 +347,14 @@ SpeechEngine.prototype =
       currentMaxRanking = -1;
     }
 
-    console.log("Selected phrase for reconstruction: " + selectedPhrase);
+    if (this.debugMode) console.log("Selected phrase for reconstruction: " + selectedPhrase);
 
     for (var keywordStackIndex = 0, keywordStackLength = keywordRulesStack.length;
       keywordStackIndex < keywordStackLength; keywordStackIndex++)
     {
       var currentKeywordRules = keywordRulesStack[keywordStackIndex];
-      var currentAttempt = currentKeywordRules.attemptReconstruction(selectedPhrase);
-      console.log("keyword " + currentKeywordRules.keyword + " attempt " + currentAttempt);
+      var currentAttempt = currentKeywordRules.attemptReconstruction(selectedPhrase, this.debugMode);
+      if (this.debugMode) console.log("keyword " + currentKeywordRules.keyword + " attempt " + currentAttempt);
       if (currentAttempt !== null)
       {
         // memory function?
@@ -384,7 +387,7 @@ SpeechEngine.prototype =
     if (outputLine != null && outputLine.length > 0)
     {
 
-      console.log("done: " + outputLine);
+      if (this.debugMode) console.log("done: " + outputLine);
       var capitalizedChar = outputLine[0].toUpperCase();
       outputLine = outputLine.replace(/^./, capitalizedChar);
       // make sure individual Is are capitalized. even ones adjacent to punctuation.
