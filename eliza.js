@@ -2,12 +2,12 @@ var readLine = require('readline');
 var scriptReaderModule = require('./script-reader');
 var scriptReader = scriptReaderModule.refToScriptReader;
 var speechEngineModule = require('./speech-engine');
-var speechEngine = speechEngineModule.refToSpeechEngine;
+var SpeechEngine = speechEngineModule.refToSpeechEngine;
 
-var readLineInterface = readLine.createInterface(process.stdin, process.stdout, null);
+var readLineInterface = readLine.createInterface(process.stdin, process.stdout);
 var prompt = '>';
 
-var speechEngine = new speechEngine();
+var speechEngine = new SpeechEngine();
 var debugMode = (process.argv.length > 2 ? (process.argv[2] == "debug") : false);
 
 scriptReader = new scriptReader("./elizaScript.txt");
