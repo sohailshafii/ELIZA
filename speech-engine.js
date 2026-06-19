@@ -263,16 +263,30 @@ SpeechEngine.prototype =
     var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]/;
 
     // do all on-the-fly pre-replacements here (e.g. "dont" -> "don't",
-    // "me" -> "you"); everything is already lower-case
+    // "me" -> "you"); everything is already lower-case. A replacement may
+    // expand to several words (e.g. "i'm" -> "i am"), so re-split it into
+    // separate tokens -- otherwise the words inside it would never be matched
+    // as keywords.
+    var replacedInputLineArray = [];
     for (var inputLineArrayIndex = 0, inputLineArrayLength = inputLineArray.length;
       inputLineArrayIndex < inputLineArrayLength; inputLineArrayIndex++)
     {
       var currentWord = inputLineArray[inputLineArrayIndex];
       if (this.keywordToReplacementKeyword.hasOwnProperty(currentWord))
       {
-        inputLineArray[inputLineArrayIndex] = this.keywordToReplacementKeyword[currentWord];
+        var replacementWords = this.keywordToReplacementKeyword[currentWord].split(/\s+/);
+        for (var replacementIndex = 0; replacementIndex < replacementWords.length;
+          replacementIndex++)
+        {
+          replacedInputLineArray.push(replacementWords[replacementIndex]);
+        }
+      }
+      else
+      {
+        replacedInputLineArray.push(currentWord);
       }
     }
+    inputLineArray = replacedInputLineArray;
 
     // Segment the input at punctuation and decompose only a single phrase.
     // ELIZA scans left to right; the first clause that yields a keyword is the
