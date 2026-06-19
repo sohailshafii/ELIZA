@@ -50,6 +50,16 @@ test('canonical opening line gets the expected reply', function() {
   assert.strictEqual(out, 'Do you think they might not be all alike?');
 });
 
+test('a specific decomposition wins over the generic catch-all', function() {
+  var engine = buildEngine();
+  // "you are unhappy" matches both "0 YOU ARE 0" and the catch-all "0". The
+  // specific rule (listed first in the script) must win -- decomposition
+  // selection used to be random and often produced the generic "You say ."
+  var out = engine.analyzeInputLine('I am unhappy.');
+
+  assert.strictEqual(out, 'Is it because you are unhappy that you came to me?');
+});
+
 test('holds the canonical conversation without crashing or going silent', function() {
   var engine = buildEngine();
   CANONICAL_CONVERSATION.forEach(function(line) {

@@ -251,11 +251,13 @@ KeywordRules.prototype =
       }
     }
 
-    // pick random decomp that works
+    // use the first decomposition that matches. decompArray is in script order,
+    // so the more specific rules (listed first) win over a generic catch-all
+    // like "0" -- this is ELIZA's deterministic first-match behaviour. (Variety
+    // comes from cycling the reassembly rules, not from picking decomps.)
     if (decompsThatWork.length > 0)
     {
-      var randomIndex = parseInt(Math.random()*decompsThatWork.length);
-      var decompRules = decompsThatWork[randomIndex];
+      var decompRules = decompsThatWork[0];
       var decompRegEx = decompRules.decompositionRegEx;
       var decompResult = decompRegEx.exec(inputLine);
 
