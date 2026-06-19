@@ -268,6 +268,12 @@ SpeechEngine.prototype =
     // separate tokens -- otherwise the words inside it would never be matched
     // as keywords.
     var replacedInputLineArray = [];
+    // A single-word pre-replacement is a finished reflection (e.g. "me" ->
+    // "you"); flag it so the keyword pass below does not reflect it a second
+    // time -- otherwise "me" -> "you" -> "i". Multi-word expansions (e.g.
+    // "i'm" -> "i am") are NOT flagged, so their words still reflect normally
+    // ("i" -> "you", "am" -> "are").
+    var alreadyReflected = [];
     for (var inputLineArrayIndex = 0, inputLineArrayLength = inputLineArray.length;
       inputLineArrayIndex < inputLineArrayLength; inputLineArrayIndex++)
     {
@@ -275,15 +281,18 @@ SpeechEngine.prototype =
       if (this.keywordToReplacementKeyword.hasOwnProperty(currentWord))
       {
         var replacementWords = this.keywordToReplacementKeyword[currentWord].split(/\s+/);
+        var isSingleWordReplacement = (replacementWords.length === 1);
         for (var replacementIndex = 0; replacementIndex < replacementWords.length;
           replacementIndex++)
         {
           replacedInputLineArray.push(replacementWords[replacementIndex]);
+          alreadyReflected.push(isSingleWordReplacement);
         }
       }
       else
       {
         replacedInputLineArray.push(currentWord);
+        alreadyReflected.push(false);
       }
     }
     inputLineArray = replacedInputLineArray;
@@ -313,8 +322,10 @@ SpeechEngine.prototype =
         {
           var keywordRules = this.keywordToKeywordRules[currentWord];
 
-          // on-the-fly keyword replacement (e.g. "my" -> "your", "i" -> "you")
-          if (keywordRules.replacementKeyword != null)
+          // on-the-fly keyword replacement (e.g. "my" -> "your", "i" -> "you"),
+          // unless this token is already a finished reflection from a
+          // pre-replacement (see alreadyReflected above)
+          if (keywordRules.replacementKeyword != null && !alreadyReflected[tokenIndex])
           {
             currentWord = keywordRules.replacementKeyword;
           }
