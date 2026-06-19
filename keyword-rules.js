@@ -60,8 +60,7 @@ KeywordRules.prototype =
     this.decompArray = aliasKeywordRules.decompArray;
   },
 
-  // TODO: consider using word boundary, i.e. \b, in regexs
-  // TODO: Situation around “i” does not work. Like “I am sad” or 
+  // TODO: Situation around “i” does not work. Like “I am sad” or
   // “I usually win at blackjack.” goes with second “i.” always
   addDecompAndReconstructions: function(allKeywordToKeywordRules,
     decompositionString, reconstructionStrings, memoryFunction, keywordToFamily)
@@ -128,9 +127,11 @@ KeywordRules.prototype =
           }
         }
       }
-      else 
+      else
       {
-        currRegEx += "(" + currentToken + ")";
+        // a literal keyword token: anchor it at word boundaries so it does not
+        // match inside a larger word (e.g. "happy" must not match "unhappy")
+        currRegEx += "\\b(" + currentToken + ")\\b";
       }
     }
 
@@ -156,7 +157,7 @@ KeywordRules.prototype =
           for (var familyIndex = 0, numFamily = familyMembers.length;
             familyIndex < numFamily; familyIndex++)
           {
-            newSpecialTokens[tokenIndex] = "(" + familyMembers[familyIndex] + ")";
+            newSpecialTokens[tokenIndex] = "\\b(" + familyMembers[familyIndex] + ")\\b";
             setupRegExPermutations(newSpecialTokens, keywordToFamily,
               decompositionRegExArray);
           }
@@ -173,7 +174,7 @@ KeywordRules.prototype =
             for (var ordIndex = 0, ordLength = ordTokens.length;
               ordIndex < ordLength; ordIndex++)
             {
-              newSpecialTokens[tokenIndex] = "(" + ordTokens[ordIndex] + ")";
+              newSpecialTokens[tokenIndex] = "\\b(" + ordTokens[ordIndex] + ")\\b";
               setupRegExPermutations(newSpecialTokens, keywordToFamily,
                 decompositionRegExArray);
             }
