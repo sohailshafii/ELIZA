@@ -39,6 +39,17 @@ phrase, and the chosen reassembly), run in debug mode:
 node eliza.js debug
 ```
 
+By default, decomposition patterns are compiled to regular expressions. Pass
+`list` to use a more faithful, list-based matcher that walks the input word by
+word, the way the paper describes (the two agree on first-match replies; the
+list matcher additionally shares one reassembly cycle across an alternation's
+branches). The switches combine in any order:
+
+```
+node eliza.js list
+node eliza.js list debug
+```
+
 ## Running the tests
 
 ```

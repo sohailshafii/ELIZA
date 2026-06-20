@@ -1,7 +1,11 @@
 var keywordRulesModule = require('./keyword-rules');
 var keywordRulesRef = keywordRulesModule.refToKeywordRules;
 
-function SpeechEngine(){
+function SpeechEngine(keywordRulesConstructor){
+  // which decomposition matcher to use for keyword rules; defaults to the
+  // regex matcher in keyword-rules.js, or the list matcher when one is passed
+  this.keywordRulesRef = keywordRulesConstructor || keywordRulesRef;
+
   this.keywordToKeywordRules = { };
   this.keywordToReplacementKeyword = { };
   this.keywordToFamily = { };
@@ -61,7 +65,7 @@ SpeechEngine.prototype =
         this.currentKeyword = memoryKeyword;
         if (!this.keywordToMemoryRules.hasOwnProperty(memoryKeyword))
         {
-          this.keywordToMemoryRules[memoryKeyword] = new keywordRulesRef(memoryKeyword, 0);
+          this.keywordToMemoryRules[memoryKeyword] = new this.keywordRulesRef(memoryKeyword, 0);
         }
       }
       else if (currentLine.includes("endmemory"))
@@ -213,7 +217,7 @@ SpeechEngine.prototype =
     if (keyword === null) return;
     if (!this.keywordToKeywordRules.hasOwnProperty(keyword))
     {
-      this.keywordToKeywordRules[keyword] = new keywordRulesRef(keyword, ranking);
+      this.keywordToKeywordRules[keyword] = new this.keywordRulesRef(keyword, ranking);
     }
   },
 
@@ -222,7 +226,7 @@ SpeechEngine.prototype =
     if (keywordAlias === null || keyword === null) return;
     if (!this.keywordToKeywordRules.hasOwnProperty(keyword))
     {
-      this.keywordToKeywordRules[keyword] = new keywordRulesRef(keyword, ranking);
+      this.keywordToKeywordRules[keyword] = new this.keywordRulesRef(keyword, ranking);
     }
     var keywordRules = this.keywordToKeywordRules[keyword];
     if (this.keywordToKeywordRules.hasOwnProperty(keywordAlias))
