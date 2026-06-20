@@ -11,6 +11,11 @@ function SpeechEngine(){
   this.contentFreeRemarks = [];
   this.memoryStack = [];
 
+  // a MEMORY rule per keyword: when that keyword answers, it also forms a
+  // phrase to recall later. Built like a keyword rule (decomp + reassemblies).
+  this.keywordToMemoryRules = { };
+  this.inMemoryBlock = false;
+
   // when true, analysis prints step-by-step tracing to the console
   this.debugMode = false;
 }
@@ -26,6 +31,7 @@ SpeechEngine.prototype =
     var replacementRegEx = /pre-replacement:\s*(\S+)=(.+)\s*/;
     var familyRegEx = /family:\s*(\S+)=(.+)\s*/;
     var contentFreeRegEx = /content-free:\s*(.+)/;
+    var memoryRegEx = /memory:\s*(\S+)/;
 
     this.currentKeyword = null;
     this.currentDecompRule = "";
@@ -43,8 +49,28 @@ SpeechEngine.prototype =
       var replacementTest = replacementRegEx.exec(currentLine);
       var familyTest = familyRegEx.exec(currentLine);
       var contentFreeTest = contentFreeRegEx.exec(currentLine);
+      var memoryTest = memoryRegEx.exec(currentLine);
 
-      if (introLineTest != null)
+      if (memoryTest != null)
+      {
+        // start of a "memory: KEYWORD" block; subsequent decomp/reassembly
+        // lines build the memory rule (routed by this.inMemoryBlock) until
+        // "endmemory"
+        var memoryKeyword = memoryTest[1].toLowerCase();
+        this.inMemoryBlock = true;
+        this.currentKeyword = memoryKeyword;
+        if (!this.keywordToMemoryRules.hasOwnProperty(memoryKeyword))
+        {
+          this.keywordToMemoryRules[memoryKeyword] = new keywordRulesRef(memoryKeyword, 0);
+        }
+      }
+      else if (currentLine.includes("endmemory"))
+      {
+        this.inMemoryBlock = false;
+        this.currentKeyword = null;
+        this.currentReconstructions = [];
+      }
+      else if (introLineTest != null)
       {
         this.introductoryLines.push(introLineTest[1]);
       }
@@ -206,11 +232,13 @@ SpeechEngine.prototype =
     }
   },
 
-  addDecompRules: function(keyword, decompositionString, 
+  addDecompRules: function(keyword, decompositionString,
     reconstructionStrings, memoryFunction)
   {
-    var keywordRules = this.keywordToKeywordRules[keyword];
-    keywordRules.addDecompAndReconstructions(this.keywordToKeywordRules, decompositionString, 
+    var targetRules = this.inMemoryBlock ?
+      this.keywordToMemoryRules : this.keywordToKeywordRules;
+    var keywordRules = targetRules[keyword];
+    keywordRules.addDecompAndReconstructions(this.keywordToKeywordRules, decompositionString,
       reconstructionStrings, memoryFunction, this.keywordToFamily);
   },
 
@@ -386,12 +414,19 @@ SpeechEngine.prototype =
       // ranked) keyword in the stack instead of stopping here.
       if (currentAttempt !== null && currentAttempt[0] !== null)
       {
-        // memory function?
-        if (currentAttempt[1])
-        {
-          this.memoryStack.push(currentAttempt[0]);
-        }
         outputLine = currentAttempt[0];
+
+        // if this keyword has a MEMORY rule, form a separate phrase from the
+        // same clause and stash it to recall later (when no keyword matches)
+        var memoryRules = this.keywordToMemoryRules[currentKeywordRules.keyword];
+        if (memoryRules != null)
+        {
+          var memoryAttempt = memoryRules.attemptReconstruction(selectedPhrase, this.debugMode);
+          if (memoryAttempt !== null && memoryAttempt[0] !== null)
+          {
+            this.memoryStack.push(memoryAttempt[0]);
+          }
+        }
         break;
       }
     }
