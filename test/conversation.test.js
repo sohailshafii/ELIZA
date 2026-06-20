@@ -40,24 +40,26 @@ test('reflects "me" to "you", never back to "I"', function() {
   // "...made I come here."
   var out = engine.analyzeInputLine('Well, my boyfriend made me come here.');
 
-  assert.strictEqual(out, "Let's discuss further your boyfriend made you come here.");
+  assert.strictEqual(out, 'Your boyfriend made you come here?');
 });
 
 test('canonical opening line gets the expected reply', function() {
   var engine = buildEngine();
   var out = engine.analyzeInputLine('Men are all alike.');
 
-  assert.strictEqual(out, 'Do you think they might not be all alike?');
+  // ALIKE (rank 10) outranks ARE and is equivalent to DIT.
+  assert.strictEqual(out, 'In what way?');
 });
 
 test('a specific decomposition wins over the generic catch-all', function() {
   var engine = buildEngine();
-  // "you are unhappy" matches both "0 YOU ARE 0" and the catch-all "0". The
-  // specific rule (listed first in the script) must win -- decomposition
-  // selection used to be random and often produced the generic "You say ."
+  // "you are unhappy" matches the specific "0 YOU ARE 0 (SAD-UNHAPPY-...) 0"
+  // rule, the plain "0 YOU ARE 0", and the catch-all "0". The most specific
+  // rule (listed first in the script) must win -- decomposition selection used
+  // to be random and often produced the generic "You say ."
   var out = engine.analyzeInputLine('I am unhappy.');
 
-  assert.strictEqual(out, 'Is it because you are unhappy that you came to me?');
+  assert.strictEqual(out, 'I am sorry to hear you are unhappy.');
 });
 
 test('holds the canonical conversation without crashing or going silent', function() {

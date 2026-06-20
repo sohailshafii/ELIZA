@@ -71,9 +71,9 @@ test('BELIEF reassemblies do not leak into a non-BELIEF decomp under I', functio
   });
 });
 
-test('the dropped "What are you feelings now?" reassembly is registered under YOU', function() {
+test('YOU keyword parses its final reassembly', function() {
   var engine = buildEngine();
   var reassemblies = reassembliesFor(engine, 'you');
-  assert.ok(reassemblies.indexOf('What are you feelings now?') !== -1,
-    'the reasesmbly-typo line should now be parsed as a reassembly');
+  assert.ok(reassemblies.indexOf('What are your feelings now?') !== -1,
+    'the last YOU reassembly should be parsed');
 });
