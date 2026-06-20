@@ -1,50 +1,65 @@
-# Possible intro phrases.
-Intro: Hello, I'm Dr. ELIZA. How do you do? Please tell me your problem.
-Intro: Hi, I'm Dr. ELIZA. Let's get this over with; what's your problem?
-Intro: How do you do? Please tell me your problem.
-Intro: What ails you?
-Intro: How do you do?
-Intro: Please tell me your problems.
-# Quit messages
-Quit: Have a nice day.
-Quit: Take care of yourself.
+# ELIZA DOCTOR script.
+#
+# Ported from Joseph Weizenbaum's script in the appendix of his January 1966
+# Communications of the ACM article "ELIZA -- A Computer Program For the Study
+# of Natural Language Communication Between Man And Machine", via Anthony Hay's
+# verbatim transcription (github.com/anthay/ELIZA, and the copy at
+# github.com/jeffshrager/elizagen.org), released under CC0.
+#
+# Adapted to this engine's format:
+#  - Reassembly fragment numbers are 0-based here, so every number from the
+#    CACM script has been decremented by 1.
+#  - "(* A B C)" alternation is written "(A-B-C)"; "(/TAG)" is written "/TAG".
+#  - DLIST tag definitions are gathered into the "family:" lines below.
+#  - Reassembly text is sentence-cased and given end punctuation; the obvious
+#    transcription typo "APOLIGIZE" is corrected to "apologize".
+#  - Equivalence keywords ("key: X = Y") are listed AFTER their target Y,
+#    because this engine resolves equivalences at parse time.
+#
+# Two constructs the original uses cannot be expressed by this engine and are
+# approximated (documented inline):
+#  - R5 PRE (YOU'RE / I'M): approximated by the multi-word pre-replacements
+#    "YOU'RE=YOU ARE" and "I'M=I AM".
+#  - R6 MEMORY (MY): approximated with the "memory" flag on MY's plain rule,
+#    so its reply is both shown now and recalled later.
+#
+# The single greeting is from the script. The Quit lines are an app-level
+# addition (the original program handled termination separately).
+
+Intro: How do you do. Please tell me your problem.
+
 Quit: Goodbye.
-Quit: See you around.
-# on-the-fly replacements
+Quit: Take care of yourself.
+
+# on-the-fly word substitutions (R2), DLIST substitutions, and PRE approximations
 pre-replacement: DONT=DON'T
 pre-replacement: CANT=CAN'T
 pre-replacement: WONT=WON'T
-pre-replacement: RECOLLECT=REMEMBER
-pre-replacement: RECALL=REMEMBER
-pre-replacement: DREAMT=DREAMED
-pre-replacement: DREAMS=DREAM
-pre-replacement: MAYBE=PERHAPS
-pre-replacement: CERTAINLY=YES
-pre-replacement: SAME=ALIKE
-pre-replacement: IDENTICAL=ALIKE
-pre-replacement: EQUIVALENT=ALIKE
-pre-replacement: WERE=WAS
 pre-replacement: ME=YOU
-pre-replacement: YOU'RE=YOU ARE
-pre-replacement: I'M=I AM
+pre-replacement: WERE=WAS
 pre-replacement: MYSELF=YOURSELF
 pre-replacement: YOURSELF=MYSELF
+pre-replacement: DREAMED=DREAMT
+pre-replacement: DREAMS=DREAM
 pre-replacement: MOM=MOTHER
 pre-replacement: DAD=FATHER
+pre-replacement: YOU'RE=YOU ARE
+pre-replacement: I'M=I AM
 
-# family associations
+# DLIST tag classes (R3)
 family: BELIEF=FEEL,THINK,BELIEVE,WISH
-family: FAMILY=FATHER,MOTHER,SISTER,BROTHER,WIFE,CHILDREN
+family: FAMILY=MOTHER,FATHER,SISTER,BROTHER,WIFE,CHILDREN
 
-# content-free remarks
+# the NONE rule
 content-free: I am not sure I understand you fully.
-content-free: Please, go on.
+content-free: Please go on.
 content-free: What does that suggest to you?
-content-free: Do you feel strongly about such things?
+content-free: Do you feel strongly about discussing such things?
 
-# script rules
-# keyword/decomp/etc don't have to uppercase. I just made it that way
-# to make the script easier to read. Case matters for reassembly rules.
+# ---------------------------------------------------------------------------
+# Keywords with transformation rules
+# ---------------------------------------------------------------------------
+
 key: SORRY
 	decomp: 0
 		reassembly: Please don't apologize.
@@ -54,12 +69,309 @@ key: SORRY
 	enddecomp
 endkey
 
+key: REMEMBER 5
+	decomp: 0 YOU REMEMBER 0
+		reassembly: Do you often think of 3?
+		reassembly: Does thinking of 3 bring anything else to mind?
+		reassembly: What else do you remember?
+		reassembly: Why do you remember 3 just now?
+		reassembly: What in the present situation reminds you of 3?
+		reassembly: What is the connection between me and 3?
+	enddecomp
+	decomp: 0 DO I REMEMBER 0
+		reassembly: Did you think I would forget 4?
+		reassembly: Why do you think I should recall 4 now?
+		reassembly: What about 4?
+		reassembly: = WHAT
+		reassembly: You mentioned 4?
+	enddecomp
+	decomp: 0
+		reassembly: NEWKEY
+	enddecomp
+endkey
+
 key: IF 3
 	decomp: 0 IF 0
-		reassembly: Do you think it's likely that 2?
+		reassembly: Do you think its likely that 2?
 		reassembly: Do you wish that 2?
 		reassembly: What do you think about 2?
-		reassembly: Really, if 2?
+		reassembly: Really, 1 2?
+	enddecomp
+endkey
+
+key: DREAMT 4
+	decomp: 0 YOU DREAMT 0
+		reassembly: Really, 3?
+		reassembly: Have you ever fantasied 3 while you were awake?
+		reassembly: Have you dreamt 3 before?
+		reassembly: = DREAM
+		reassembly: NEWKEY
+	enddecomp
+endkey
+
+key: DREAM 3
+	decomp: 0
+		reassembly: What does that dream suggest to you?
+		reassembly: Do you dream often?
+		reassembly: What persons appear in your dreams?
+		reassembly: Don't you believe that dream has something to do with your problem?
+		reassembly: NEWKEY
+	enddecomp
+endkey
+
+key: PERHAPS
+	decomp: 0
+		reassembly: You don't seem quite certain.
+		reassembly: Why the uncertain tone?
+		reassembly: Can't you be more positive?
+		reassembly: You aren't sure.
+		reassembly: Don't you know?
+	enddecomp
+endkey
+
+key: NAME 15
+	decomp: 0
+		reassembly: I am not interested in names.
+		reassembly: I've told you before, I don't care about names - please continue.
+	enddecomp
+endkey
+
+key: XFREMD
+	decomp: 0
+		reassembly: I am sorry, I speak only English.
+	enddecomp
+endkey
+
+key: HELLO
+	decomp: 0
+		reassembly: How do you do. Please state your problem.
+	enddecomp
+endkey
+
+key: COMPUTER 50
+	decomp: 0
+		reassembly: Do computers worry you?
+		reassembly: Why do you mention computers?
+		reassembly: What do you think machines have to do with your problem?
+		reassembly: Don't you think computers can help people?
+		reassembly: What about machines worries you?
+		reassembly: What do you think about machines?
+	enddecomp
+endkey
+
+key: AM
+	replace: ARE
+	decomp: 0 ARE YOU 0
+		reassembly: Do you believe you are 3?
+		reassembly: Would you want to be 3?
+		reassembly: You wish I would tell you you are 3?
+		reassembly: What would it mean if you were 3?
+		reassembly: = WHAT
+	enddecomp
+	decomp: 0
+		reassembly: Why do you say 'am'?
+		reassembly: I don't understand that.
+	enddecomp
+endkey
+
+key: ARE
+	decomp: 0 ARE I 0
+		reassembly: Why are you interested in whether I am 3 or not?
+		reassembly: Would you prefer if I weren't 3?
+		reassembly: Perhaps I am 3 in your fantasies.
+		reassembly: Do you sometimes think I am 3?
+		reassembly: = WHAT
+	enddecomp
+	decomp: 0 ARE 0
+		reassembly: Did you think they might not be 2?
+		reassembly: Would you like it if they were not 2?
+		reassembly: What if they were not 2?
+		reassembly: Possibly they are 2.
+	enddecomp
+endkey
+
+key: YOUR
+	replace: MY
+	decomp: 0 MY 0
+		reassembly: Why are you concerned over my 2?
+		reassembly: What about your own 2?
+		reassembly: Are you worried about someone elses 2?
+		reassembly: Really, my 2?
+	enddecomp
+endkey
+
+key: WAS 2
+	decomp: 0 WAS YOU 0
+		reassembly: What if you were 3?
+		reassembly: Do you think you were 3?
+		reassembly: Were you 3?
+		reassembly: What would it mean if you were 3?
+		reassembly: What does '3' suggest to you?
+		reassembly: = WHAT
+	enddecomp
+	decomp: 0 YOU WAS 0
+		reassembly: Were you really?
+		reassembly: Why do you tell me you were 3 now?
+		reassembly: Perhaps I already knew you were 3.
+	enddecomp
+	decomp: 0 WAS I 0
+		reassembly: Would you like to believe I was 3?
+		reassembly: What suggests that I was 3?
+		reassembly: What do you think?
+		reassembly: Perhaps I was 3.
+		reassembly: What if I had been 3?
+	enddecomp
+	decomp: 0
+		reassembly: NEWKEY
+	enddecomp
+endkey
+
+key: I
+	replace: YOU
+	decomp: 0 YOU (WANT-NEED) 0
+		reassembly: What would it mean to you if you got 3?
+		reassembly: Why do you want 3?
+		reassembly: Suppose you got 3 soon?
+		reassembly: What if you never got 3?
+		reassembly: What would getting 3 mean to you?
+		reassembly: What does wanting 3 have to do with this discussion?
+	enddecomp
+	decomp: 0 YOU ARE 0 (SAD-UNHAPPY-DEPRESSED-SICK) 0
+		reassembly: I am sorry to hear you are 4.
+		reassembly: Do you think coming here will help you not to be 4?
+		reassembly: I'm sure its not pleasant to be 4.
+		reassembly: Can you explain what made you 4?
+	enddecomp
+	decomp: 0 YOU ARE 0 (HAPPY-ELATED-GLAD-BETTER) 0
+		reassembly: How have I helped you to be 4?
+		reassembly: Has your treatment made you 4?
+		reassembly: What makes you 4 just now?
+		reassembly: Can you explain why you are suddenly 4?
+	enddecomp
+	decomp: 0 YOU WAS 0
+		reassembly: = WAS
+	enddecomp
+	decomp: 0 YOU /BELIEF YOU 0
+		reassembly: Do you really think so?
+		reassembly: But you are not sure you 4?
+		reassembly: Do you really doubt you 4?
+	enddecomp
+	decomp: 0 YOU 0 /BELIEF 0 I 0
+		reassembly: = YOU
+	enddecomp
+	decomp: 0 YOU ARE 0
+		reassembly: Is it because you are 3 that you came to me?
+		reassembly: How long have you been 3?
+		reassembly: Do you believe it normal to be 3?
+		reassembly: Do you enjoy being 3?
+	enddecomp
+	decomp: 0 YOU (CAN'T-CANNOT) 0
+		reassembly: How do you know you can't 3?
+		reassembly: Have you tried?
+		reassembly: Perhaps you could 3 now?
+		reassembly: Do you really want to be able to 3?
+	enddecomp
+	decomp: 0 YOU DON'T 0
+		reassembly: Don't you really 3?
+		reassembly: Why don't you 3?
+		reassembly: Do you wish to be able to 3?
+		reassembly: Does that trouble you?
+	enddecomp
+	decomp: 0 YOU FEEL 0
+		reassembly: Tell me more about such feelings.
+		reassembly: Do you often feel 3?
+		reassembly: Do you enjoy feeling 3?
+		reassembly: Of what does feeling 3 remind you?
+	enddecomp
+	decomp: 0 YOU 0 I 0
+		reassembly: Perhaps in your fantasy we 2 each other.
+		reassembly: Do you wish to 2 me?
+		reassembly: You seem to need to 2 me?
+		reassembly: Do you 2 anyone else?
+	enddecomp
+	decomp: 0
+		reassembly: You say 0.
+		reassembly: Can you elaborate on that?
+		reassembly: Do you say 0 for some special reason?
+		reassembly: That's quite interesting.
+	enddecomp
+endkey
+
+key: YOU
+	replace: I
+	decomp: 0 I REMIND YOU OF 0
+		reassembly: = DIT
+	enddecomp
+	decomp: 0 I ARE 0
+		reassembly: What makes you think I am 3?
+		reassembly: Does it please you to believe I am 3?
+		reassembly: Do you sometimes wish you were 3?
+		reassembly: Perhaps you would like to be 3?
+	enddecomp
+	decomp: 0 I 0 YOU
+		reassembly: Why do you think I 2 you?
+		reassembly: You like to think I 2 you - don't you?
+		reassembly: What makes you think I 2 you?
+		reassembly: Really, I 2 you?
+		reassembly: Do you wish to believe I 2 you?
+		reassembly: Suppose I did 2 you - what would that mean?
+		reassembly: Does someone else believe I 2 you?
+	enddecomp
+	decomp: 0 I 0
+		reassembly: We were discussing you - not me.
+		reassembly: Oh, I 2?
+		reassembly: You're not really talking about me - are you?
+		reassembly: What are your feelings now?
+	enddecomp
+endkey
+
+key: YES
+	decomp: 0
+		reassembly: You seem quite positive.
+		reassembly: You are sure?
+		reassembly: I see.
+		reassembly: I understand.
+	enddecomp
+endkey
+
+key: NO
+	decomp: 0
+		reassembly: Are you saying 'no' just to be negative?
+		reassembly: You are being a bit negative.
+		reassembly: Why not?
+		reassembly: Why 'no'?
+	enddecomp
+endkey
+
+key: MY 2
+	replace: YOUR
+	decomp: 0 YOUR 0 /FAMILY 0
+		reassembly: Tell me more about your family.
+		reassembly: Who else in your family 4?
+		reassembly: Your 3?
+		reassembly: What else comes to mind when you think of your 3?
+	enddecomp
+	memory
+	decomp: 0 YOUR 0
+		reassembly: Your 2?
+		reassembly: Why do you say your 2?
+		reassembly: Does that suggest anything else which belongs to you?
+		reassembly: Is it important to you that 1 2?
+	enddecomp
+endkey
+
+key: CAN
+	decomp: 0 CAN I 0
+		reassembly: You believe I can 3 don't you?
+		reassembly: = WHAT
+		reassembly: You want me to be able to 3?
+		reassembly: Perhaps you would like to be able to 3 yourself?
+	enddecomp
+	decomp: 0 CAN YOU 0
+		reassembly: Whether or not you can 3 depends on you more than on me.
+		reassembly: Do you want to be able to 3?
+		reassembly: Perhaps you don't want to 3?
+		reassembly: = WHAT
 	enddecomp
 endkey
 
@@ -67,13 +379,22 @@ key: WHAT
 	decomp: 0
 		reassembly: Why do you ask?
 		reassembly: Does that question interest you?
-		reassembly: What is it really want to know?
+		reassembly: What is it you really want to know?
 		reassembly: Are such questions much on your mind?
-		reassembly: What answer would please you the most?
+		reassembly: What answer would please you most?
 		reassembly: What do you think?
 		reassembly: What comes to your mind when you ask that?
-		reassembly: Have you asked such a question before?
+		reassembly: Have you asked such questions before?
 		reassembly: Have you asked anyone else?
+	enddecomp
+endkey
+
+key: BECAUSE
+	decomp: 0
+		reassembly: Is that the real reason?
+		reassembly: Don't any other reasons come to mind?
+		reassembly: Does that reason seem to explain anything else?
+		reassembly: What other reasons might there be?
 	enddecomp
 endkey
 
@@ -92,191 +413,73 @@ key: WHY
 		reassembly: Have you any idea why you can't 4?
 		reassembly: = WHAT
 	enddecomp
+endkey
+
+key: EVERYONE 2
+	decomp: 0 (EVERYONE-EVERYBODY-NOBODY-NOONE) 0
+		reassembly: Really, 1?
+		reassembly: Surely not 1?
+		reassembly: Can you think of anyone in particular?
+		reassembly: Who, for example?
+		reassembly: You are thinking of a very special person.
+		reassembly: Who, may I ask?
+		reassembly: Someone special perhaps?
+		reassembly: You have a particular person in mind, don't you?
+		reassembly: Who do you think you're talking about?
+	enddecomp
+endkey
+
+key: ALWAYS 1
 	decomp: 0
-		reassembly: = WHAT
+		reassembly: Can you think of a specific example?
+		reassembly: When?
+		reassembly: What incident are you thinking of?
+		reassembly: Really, always?
 	enddecomp
 endkey
 
-key: REMEMBER 5
-	decomp: 0 I REMEMBER 0
-		reassembly: Do you often think of 3?
-		reassembly: Does thinking of 3 bring anything else to mind?
-		reassembly: What else do you remember?
-		reassembly: Why do you remember 3 just now?
-		reassembly: What in the present situation reminds you of 3?
-		reassembly: What is the connection between me and 3?
-	enddecomp
-	decomp: 0 DO YOU REMEMBER 0
-		reassembly: Did you think I would forget 4?
-		reassembly: Why do you think I should recall 4 now?
-		reassembly: What about 4?
-		reassembly: = WHAT
-		reassembly: You mentioned 4?
-	enddecomp
-	decomp: 0
-		reassembly: NEWKEY
-	enddecomp
-endkey
-
-key: MY 2
-	memory
-	replace: YOUR
-	decomp: 0 YOUR 0
-		reassembly: Let's discuss further your 2.
-		reassembly: Earlier you said your 2.
-		reassembly: But your 2?!
-		reassembly: Does that have anything to do with the fact that your 2?
-		reassembly: Your 2?
-		reassembly: Why do you say your 2?
-		reassembly: Does that suggest anything else which belongs to you?
-		reassembly: Is it important to you that your 2?
-	enddecomp
-	decomp: 0 YOUR 0 /FAMILY 0
-		reassembly: Tell me more about your family.
-		reassembly: Who else in your family 4?
-		reassembly: Your 3?
-		reassembly: What else comes to mind when you think of your 3?
-	enddecomp
-endkey
-
-key: COMPUTER 50
-	decomp: 0
-		reassembly: Do computers worry you?
-		reassembly: Why do you mention computers?
-		reassembly: What do you think machines have to do with your problem?
-		reassembly: Don't you think computers can help people?
-		reassembly: (What about machines worries you?
-		reassembly: What do you think about machines?
-	enddecomp
-endkey
-
-key: DREAMED 4
-	decomp: 0 I DREAMED 0
-		reassembly: Really, 3?
-		reassembly: Have you ever fantasized 3 while you were awake?
-		reassembly: Have you dreamt 3 before?
-		reassembly: = DREAM
-	enddecomp
-endkey
-
-key: DREAM 3
-	decomp: 0
-		reassembly: What does that dream suggest to you?
-		reassembly: Do you dream often?
-		reassembly: What persons appear in your dreams?
-		reassembly: Don't you believe that dream has something to do with your problem?
-		reassembly: Maybe you think God visited you in your dream.
-		reassembly: NEWKEY
-	enddecomp
-endkey
-
-key: PERHAPS
-	decomp: 0
-		reassembly: You don't seem quite certain.
-		reassembly: Why the uncertain tone?
-		reassembly: Can't you be more positive?
-		reassembly: You aren't sure.
-		reassembly: Don't you know?
-	enddecomp
-endkey
-
-key: NAME 15
-	decomp: 0
-		reassembly: I am not interested in names.
-		reassembly: I've you before, I don't care about names. Please continue.
-		reassembly: Again with the name issue. Move along.
-		reassembly: If you mention something related to names again, I'm coming after you.
-	enddecomp
-endkey
-
-key: XFREMD
-	decomp: 0
-		reassembly: I am sorry, I only speak 'Murican.
-	enddecomp
-endkey
-
-key: YOUR
-	replace: MY
-	decomp: 0 MY 0
-		reassembly: Why are you concerned over my 3?
-		reassembly: What about your own 3?
-		reassembly: Are you worried about someone else's 3?
-		reassembly: Really, my 3?
-	enddecomp
-endkey
-
-key: WAS 2
-	decomp: 0 WAS YOU 0
-		reassembly: What if you were 3?
-		reassembly: Do you think you were 3?
-		reassembly: were you 3?
-		reassembly: What would it mean if you were 3?
-		reassembly: What does '3' suggest to you?
-		reassembly: = WHAT
-	enddecomp
-	decomp: 0 YOU WAS 0
-		reassembly: Were you really?
-		reassembly: Why do you tell me you were 3 now?
-		reassembly: Perhaps I already knew you were 3.
-	enddecomp
-	decomp: 0 WAS I 0
-		reassembly: Would you like to believe I was 3?
-		reassembly: What suggests that I was 3?
-		reassembly: What do you think?
-		reassembly: Perhaps I was 3?
-		reassembly: What if I had been 3?
+key: LIKE 10
+	decomp: 0 (AM-IS-ARE-WAS) 0 LIKE 0
+		reassembly: = DIT
 	enddecomp
 	decomp: 0
 		reassembly: NEWKEY
 	enddecomp
 endkey
 
-key: I
-	replace: YOU
-	decomp: 0 YOU WAS 0
-		reassembly: = WAS
-	enddecomp
-endkey
-
-key: YOUR
-	replace: MY
-	decomp: 0 MY 0
-		reassembly: Why are you concerned over my 2?
-		reassembly: What about your own 2?
-		reassembly: Are you worried about someone else's 2?
-		reassembly: Really, my 2?
-	enddecomp
-endkey
-
-key: ARE
-	decomp: 0 ARE I 0
-		reassembly: Why are you interested in whether I am 3 or not?
-		reassembly: Would you prefer if I weren't 3?
-		reassembly: Perhaps I am 3 in your wildest fantasies.
-		reassembly: Do you something think I am 3?
-		reassembly: = WHAT
-	enddecomp
-	decomp: 0 ARE 0
-		reassembly: Do you think they might not be 2?
-		reassembly: Would you like it if they were not 2?
-		reassembly: What if they were not 2?
-		reassembly: Possibly they are 2.
-	enddecomp
-endkey
-
-key: AM
-	replace: ARE
-	decomp: 0 ARE YOU 0
-		reassembly: Do you believe you are 3?
-		reassembly: Would you want to be 3?
-		reassembly: You wish I would tell you that you are 3.
-		reassembly: What would it mean if you were were 3?
-		reassembly: = WHAT
-	enddecomp
+key: DIT
 	decomp: 0
-		reassembly: Why do you say 'am?'
-		reassembly: I don't understand that.
+		reassembly: In what way?
+		reassembly: What resemblance do you see?
+		reassembly: What does that similarity suggest to you?
+		reassembly: What other connections do you see?
+		reassembly: What do you suppose that resemblance means?
+		reassembly: What is the connection, do you suppose?
+		reassembly: Could there really be some connection?
+		reassembly: How?
 	enddecomp
+endkey
+
+# ---------------------------------------------------------------------------
+# Equivalence keywords (R4) -- listed after their targets above
+# ---------------------------------------------------------------------------
+
+key: HOW = WHAT
+endkey
+
+key: WHEN = WHAT
+endkey
+
+key: ALIKE 10 = DIT
+endkey
+
+key: SAME 10 = DIT
+endkey
+
+key: CERTAINLY = YES
+endkey
+
+key: MAYBE = PERHAPS
 endkey
 
 key: DEUTSCH = XFREMD
@@ -291,188 +494,13 @@ endkey
 key: ESPANOL = XFREMD
 endkey
 
-key: HOW = WHAT
+key: MACHINE 50 = COMPUTER
 endkey
 
-key: WHEN = WHAT
+key: MACHINES 50 = COMPUTER
 endkey
 
-key: MACHINE = COMPUTER
-endkey
-
-key: MACHINES = COMPUTER
-endkey
-
-key: COMPUTERS = COMPUTER
-endkey
-
-key: I
-	replace: YOU
-	decomp: 0 YOU (WANT-NEED) 0
-		reassembly: What would it mean to you if you got 3?
-		reassembly: Why do you want 3?
-		reassembly: Suppose you got 3 soon?
-		reassembly: What if you never got 3?
-		reassembly: What would getting 3 mean to you?
-		reassembly: What does wanting 3 have to do with this discussion?
-	enddecomp
-	decomp: 0 ARE YOU (SAD-UNHAPPY-DEPRESSED-SICK) 0
-		reassembly: I am sorry to that you are are 4.
-		reassembly: Do you think coming here will help you not be 4?
-		reassembly: I'm sure it's not pleasant to be 4.
-		reassembly: Can you explain what made you 4?
-	enddecomp
-	decomp: 0 YOU ARE 0 (HAPPY-ELATED-GLAD-BETTER) 0
-		reassembly: How have I helped you to be 4?
-		reassembly: Has your treatment made you 4?
-		reassembly: What makes you 4 just now?
-		reassembly: Can you explain why you are suddenly 4?
-	enddecomp
-	decomp: 0 YOU WAS 0
-		reassembly: = WAS
-	enddecomp
-	decomp: 0 YOU /BELIEF YOU 0
-		reassembly: Do you really think so?
-		reassembly: But you are not sure you 4?
-		reassembly: Do you really doubt you 4?
-	enddecomp
-	decomp: 0 YOU ARE 0
-		reassembly: Is it because you are 3 that you came to me?
-		reassembly: How long have you been 3?
-		reassembly: Do you believe it is normal to be 3?
-		reassembly: Do you enjoy being 3?
-	enddecomp
-	decomp: 0 YOU (CAN'T-CANNOT) 0
-		reassembly: How do you know you can't 3?
-		reassembly: Have you even tried?
-		reassembly: Perhaps you could 3 now?
-		reassembly: Do you really want to be able to 3?
-	enddecomp
-	decomp: 0 YOU DON'T 0
-		reassembly: Don't you really 3?
-		reassembly: Why don't you 3?
-		reassembly: Do you wish to be able to 3?
-		reassembly: Does that trouble you? You are soft on the inside?
-		reassembly: Do you wish to be able to 3?
-	enddecomp
-	decomp: 0 YOU FEEL 0
-		reassembly: Tell me more about such feelings?
-		reassembly: Do you often feel 3?
-		reassembly: Do you enjoy feeling 3?
-		reassembly: Of what does feeling 3 remind you?
-	enddecomp
-	decomp: 0 YOU 0 I 0
-		reassembly: Perhaps in your wildest dreams we 2 each other.
-		reassembly: Do you wish 2 to me?
-		reassembly: You see to need 2 to me.
-		reassembly: Do you 2 anyone else?
-	enddecomp
-	decomp: 0
-		reassembly: You say 0.
-		reassembly: Can you elaborate on that?
-		reassembly: Do you say 0 for some special reason?
-		reassembly: That's quite interesting!
-	enddecomp
-endkey
-
-key: YOU
-	replace: I
-	decomp: 0 I REMIND YOU OF 0
-		reassembly: = ALIKE
-	enddecomp
-	decomp: 0 I ARE 0
-		reassembly: What makes you think I am 3?
-		reassembly: Does it please you to believe I am 3?
-		reassembly: Do you somestimes wish you were 3?
-		reassembly: Perhaps you would like to be 3?
-	enddecomp
-	decomp: 0 I 0 YOU
-		reassembly: Why do you think I 2 you?
-		reassembly: You like to think I 2 you -- don't you?
-		reassembly: What makes you think I 2 you?
-		reassembly: Really, I 2 you?
-		reassembly: Do you wish to believe I 2 you?
-		reassembly: Suppose I did 3 you -- what would that mean?
-		reassembly: Does someone else believe I 2 you?
-	enddecomp
-	decomp: 0 I 0
-		reassembly: We were discussing you -- not me.
-		reassembly: 0, I 2?
-		reassembly: You're not really talking about me -- are you?
-		reassembly: What are you feelings now?
-	enddecomp
-endkey
-
-key: YES
-	decomp: 0
-		reassembly: You seem quite positive.
-		reassembly: You are sure?
-		reassembly: I see.
-		reassembly: I understand.
-	enddecomp
-endkey
-
-key: EVERYONE 1
-	decomp: 0 (EVERYONE-EVERYBODY-NOBODY-NOONE) 0
-		reassembly: Really, 2?
-		reassembly: Surely not 2?
-		reassembly: Can you think of anyone in particular?
-		reassembly: Who, for example?
-		reassembly: You are thinking of a very special person.
-		reassembly: Who, may I ask?
-		reassembly: Someone special, perhaps?
-		reassembly: You have a paritcular person in mind, don't you?
-		reassembly: Who do you think you're talking about?
-	enddecomp
-endkey
-
-key: NO
-	decomp: 0
-		reassembly: Are you saying 'no' just to be negative?
-		reassembly: You are being a bit negative.
-		reassembly: Why not?
-		reassembly: Why 'no?'
-	enddecomp
-endkey
-
-key: BECAUSE
-	decomp: 0
-		reassembly: Is that the real reason?
-		reassembly: Don't any other reasons come to mind?
-		reassembly: Does that reason seem to explain anything?
-		reassembly: What other reasons might there be?
-	enddecomp
-endkey
-
-key: ALWAYS 1
-	decomp: 0
-		reassembly: Can you think of a specific example?
-		reassembly: When?
-		reassembly: What incident are you thinking of?
-		reassembly: Really, always?
-	enddecomp
-endkey
-
-key: ALIKE
-	decomp: 0
-		reassembly: In what way?
-		reassembly: What resemblance do you see?
-		reassembly: What does that similarity suggest to you?
-		reassembly: What other connections do you see?
-		reassembly: What do you suppose that resemblance means?
-		reassembly: What is the connection, do you suppose?
-		reassembly: Could there really be some connection?
-		reassembly: How?
-	enddecomp
-endkey
-
-key: LIKE 10
-	decomp: 0 (AM-IS-ARE-WAS) 0 LIKE 0
-		reassembly: = ALIKE
-	enddecomp
-	decomp: 0
-		reassembly: NEWKEY
-	enddecomp
+key: COMPUTERS 50 = COMPUTER
 endkey
 
 key: EVERYBODY 2 = EVERYONE
@@ -483,5 +511,3 @@ endkey
 
 key: NOONE 2 = EVERYONE
 endkey
-
-

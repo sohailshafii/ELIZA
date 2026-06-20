@@ -23,13 +23,13 @@ Type a line and press Enter to get a reply; press Ctrl-D (or Ctrl-C) to quit.
 
 ```
 $ node eliza.js
-How do you do? Please tell me your problem.
+How do you do. Please tell me your problem.
 >Men are all alike.
-Do you think they might not be all alike?
+In what way?
 >Well, my boyfriend made me come here.
-Let's discuss further your boyfriend made you come here.
+Your boyfriend made you come here?
 >It's true. I am unhappy.
-Is it because you are unhappy that you came to me?
+I am sorry to hear you are unhappy.
 ```
 
 For step-by-step tracing (tokenization, candidate decompositions, the selected
@@ -50,9 +50,17 @@ ranking, pronoun reflection, word-boundary matching, and a replay of the
 canonical Weizenbaum conversation. The same tests run in CI on every pull
 request.
 
+## The script
+
+`elizaScript.txt` is the DOCTOR script from the appendix of Weizenbaum's 1966
+CACM article, ported into this engine's format. It was taken from Anthony Hay's
+verbatim transcription ([github.com/anthay/ELIZA](https://github.com/anthay/ELIZA),
+also mirrored at [elizagen.org](https://github.com/jeffshrager/elizagen.org)),
+released under CC0. See the comment block at the top of the file for the
+adaptations made (0-based reassembly numbers, notation translation, and two
+constructs — `PRE` and `MEMORY` — that this engine approximates).
+
 ## Notes
 
-This is a faithful but deliberately small reproduction of the original design,
-so the script is limited and the reflected echoes can read a little stiff (e.g.
-"your boyfriend made you come here") — that simple substitution is exactly how
-the 1966 program worked.
+The reflected echoes can read a little stiff (e.g. "your boyfriend made you
+come here") — that simple substitution is exactly how the 1966 program worked.
