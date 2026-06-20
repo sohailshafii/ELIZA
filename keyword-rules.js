@@ -60,8 +60,6 @@ KeywordRules.prototype =
     this.decompArray = aliasKeywordRules.decompArray;
   },
 
-  // TODO: Situation around “i” does not work. Like “I am sad” or
-  // “I usually win at blackjack.” goes with second “i.” always
   addDecompAndReconstructions: function(allKeywordToKeywordRules,
     decompositionString, reconstructionStrings, memoryFunction, keywordToFamily)
   {
@@ -115,8 +113,12 @@ KeywordRules.prototype =
         var numWords = parseInt(currentToken);
         if (numWords == 0)
         {
-          // "0": any number of words (including none)
-          currRegEx += (tokenIndex == 0 ? nonPunctuationLazy : nonPunctuation);
+          // "0": any number of words (including none). The first token is lazy
+          // so it doesn't swallow a keyword that follows -- but only when
+          // something does follow. A trailing or standalone "0" must be greedy
+          // so it captures the rest of the phrase (e.g. the "0" in "You say 0").
+          var lazy = (tokenIndex == 0 && tokenIndex < numTokens - 1);
+          currRegEx += (lazy ? nonPunctuationLazy : nonPunctuation);
         }
         else
         {
