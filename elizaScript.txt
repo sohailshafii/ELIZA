@@ -16,12 +16,10 @@
 #  - Equivalence keywords ("key: X = Y") are listed AFTER their target Y,
 #    because this engine resolves equivalences at parse time.
 #
-# Two constructs the original uses cannot be expressed by this engine and are
-# approximated (documented inline):
+# The R6 MEMORY rule is supported directly (see the "memory: MY" block below).
+# One construct still cannot be expressed by this engine and is approximated:
 #  - R5 PRE (YOU'RE / I'M): approximated by the multi-word pre-replacements
 #    "YOU'RE=YOU ARE" and "I'M=I AM".
-#  - R6 MEMORY (MY): approximated with the "memory" flag on MY's plain rule,
-#    so its reply is both shown now and recalled later.
 #
 # The single greeting is from the script. The Quit lines are an app-level
 # addition (the original program handled termination separately).
@@ -55,6 +53,18 @@ content-free: I am not sure I understand you fully.
 content-free: Please go on.
 content-free: What does that suggest to you?
 content-free: Do you feel strongly about discussing such things?
+
+# the MEMORY rule (R6): when MY answers, a phrase is also formed from the same
+# clause and recalled later, when an input yields no keyword. The reassemblies
+# cycle, just like ordinary reassembly rules.
+memory: MY
+	decomp: 0 YOUR 0
+		reassembly: Let's discuss further why your 2.
+		reassembly: Earlier you said your 2.
+		reassembly: But your 2?
+		reassembly: Does that have anything to do with the fact that your 2?
+	enddecomp
+endmemory
 
 # ---------------------------------------------------------------------------
 # Keywords with transformation rules
@@ -351,7 +361,6 @@ key: MY 2
 		reassembly: Your 3?
 		reassembly: What else comes to mind when you think of your 3?
 	enddecomp
-	memory
 	decomp: 0 YOUR 0
 		reassembly: Your 2?
 		reassembly: Why do you say your 2?
