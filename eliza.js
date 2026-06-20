@@ -7,8 +7,15 @@ var SpeechEngine = speechEngineModule.refToSpeechEngine;
 var readLineInterface = readLine.createInterface(process.stdin, process.stdout);
 var prompt = '>';
 
-var speechEngine = new SpeechEngine();
-var debugMode = (process.argv.length > 2 ? (process.argv[2] == "debug") : false);
+// command-line switches (any order): "debug" for step-by-step tracing,
+// "list" for the more faithful list-based decomposition matcher
+var args = process.argv.slice(2);
+var debugMode = args.indexOf("debug") !== -1;
+var useListMatcher = args.indexOf("list") !== -1;
+var keywordRulesConstructor = useListMatcher ?
+  require('./keyword-rules-list').refToKeywordRules : undefined;
+
+var speechEngine = new SpeechEngine(keywordRulesConstructor);
 
 scriptReader = new scriptReader("./elizaScript.txt");
 scriptReader.readScriptAndBuildEngine(speechEngine, debugMode);
