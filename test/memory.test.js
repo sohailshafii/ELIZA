@@ -27,15 +27,20 @@ test('the MEMORY rule is parsed into a separate rule set', function() {
     'the memory block must not create a "memory" keyword');
 });
 
-test('MY answers normally and stashes a distinct memory that is recalled later', function() {
+test('MY answers normally and stashes a distinct memory, recalled on the LIMIT==4 turn', function() {
   var engine = buildEngine();
 
-  // MY replies normally...
+  // turn 1 (LIMIT 2): MY replies normally and stashes a memory
   var reply = engine.analyzeInputLine('My cat died.');
   assert.strictEqual(reply, 'Your cat died?');
 
-  // ...and a keyword-less line surfaces the stored memory, not a content-free
-  // remark, with a phrasing distinct from the immediate reply.
+  // turn 2 (LIMIT 3): a keyword-less line does NOT recall yet -- the memory is
+  // delivered only on the deterministic 1-in-4 turn, so this is content-free
+  var notYet = engine.analyzeInputLine('xyzzy');
+  assert.notStrictEqual(engine.contentFreeRemarks.indexOf(notYet), -1,
+    'memory should not surface before the LIMIT==4 turn');
+
+  // turn 3 (LIMIT 4): now the stored memory surfaces, distinct from the reply
   var recalled = engine.analyzeInputLine('xyzzy');
   assert.strictEqual(recalled, "Let's discuss further why your cat died.");
   assert.notStrictEqual(recalled, reply);

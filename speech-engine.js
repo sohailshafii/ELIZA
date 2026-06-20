@@ -20,6 +20,11 @@ function SpeechEngine(keywordRulesConstructor){
   this.keywordToMemoryRules = { };
   this.inMemoryBlock = false;
 
+  // turn counter that cycles 1..4. The original ELIZA delivered a stored
+  // memory only on the turn where this counter reached 4 (its LIMIT variable),
+  // rather than on every keyword-less turn.
+  this.limit = 1;
+
   // when true, analysis prints step-by-step tracing to the console
   this.debugMode = false;
 }
@@ -287,7 +292,11 @@ SpeechEngine.prototype =
     var outputLine = null;
     var currentMaxRanking = -1;
     var keywordRulesStack = [];
-    
+
+    // advance the turn counter (cycles 1..4) once per input, as ELIZA did
+    this.limit++;
+    if (this.limit === 5) this.limit = 1;
+
     // make case consistent throughout function
     inputLine = inputLine.toLowerCase();
     var inputLineArray = this.tokenizeBasedOnSpaceAndPunctuation(inputLine);
@@ -438,7 +447,10 @@ SpeechEngine.prototype =
     // last-ditch efforts
     if (outputLine == null)
     {
-      if (this.memoryStack.length > 0)
+      // recall a stored memory only on the deterministic 1-in-4 turn, as the
+      // original did (memory delivered when its LIMIT counter reached 4);
+      // otherwise fall back to a content-free remark
+      if (this.limit === 4 && this.memoryStack.length > 0)
       {
         outputLine = this.memoryStack.pop();
       }
