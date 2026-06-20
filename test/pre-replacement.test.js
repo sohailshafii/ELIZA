@@ -1,40 +1,30 @@
-// Regression test for multi-word pre-replacement expansion (stage 6).
+// Test for multi-word pre-replacement expansion.
 //
-// Some pre-replacements expand one token into several words (e.g.
-// "i'm" -> "i am", "you're" -> "you are"). Those words were left glued into a
-// single "i am" token, so the keywords inside them ("i", "am") were never
-// detected and the engine fell back to a content-free remark. The replacement
-// is now re-split into separate tokens.
+// A pre-replacement may expand one token into several words (e.g.
+// "gonna" -> "going to"). Those words must be re-split into separate tokens so
+// the words inside can be matched as keywords. The DOCTOR script no longer uses
+// a multi-word pre-replacement (YOU'RE/I'M are PRE rules now), so this drives a
+// minimal in-memory script to exercise the feature directly.
 
 var test = require('node:test');
 var assert = require('node:assert');
-var path = require('node:path');
 
 var SpeechEngine = require('../speech-engine').refToSpeechEngine;
-var ScriptReader = require('../script-reader').refToScriptReader;
 
-function buildEngine() {
+test('a multi-word pre-replacement is re-split into separate tokens', function() {
   var engine = new SpeechEngine();
-  new ScriptReader(path.join(__dirname, '..', 'elizaScript.txt'))
-    .readScriptAndBuildEngine(engine, false);
-  return engine;
-}
+  engine.analyzeScript([
+    'pre-replacement: GONNA=GOING TO',
+    'key: TO',
+    '\tdecomp: 0',
+    '\t\treassembly: Going somewhere, I see.',
+    '\tenddecomp',
+    'endkey'
+  ]);
 
-test('a contraction that expands to multiple words still matches its keywords', function() {
-  var engine = buildEngine();
-  // "i'm" -> "i am" must surface the I/AM keywords just like typing "I am".
-  var out = engine.analyzeInputLine("I'm unhappy.");
+  // "gonna" must expand to two tokens so the "to" token matches the TO keyword;
+  // if it stayed a single "going to" token, no keyword would match.
+  var out = engine.analyzeInputLine('I am gonna leave.');
 
-  assert.notStrictEqual(out, null, 'expected a reply');
-  assert.strictEqual(engine.contentFreeRemarks.indexOf(out), -1,
-    'expected an I/AM reply, not a content-free fallback: ' + out);
-});
-
-test('"you\'re" expands and a keyword is detected', function() {
-  var engine = buildEngine();
-  var out = engine.analyzeInputLine("You're not helping me.");
-
-  assert.notStrictEqual(out, null, 'expected a reply');
-  assert.strictEqual(engine.contentFreeRemarks.indexOf(out), -1,
-    'expected a keyword-driven reply, not a content-free fallback: ' + out);
+  assert.strictEqual(out, 'Going somewhere, I see.');
 });

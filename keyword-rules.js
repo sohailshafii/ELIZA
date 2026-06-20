@@ -1,14 +1,18 @@
-function ReconstructionRule(rule, equivalentKeyword)
+function ReconstructionRule(rule, equivalentKeyword, preTransform)
 {
   this.rule = rule;
   this.equivalentKeyword = equivalentKeyword;
+  // a PRE rule: rebuild the text from `rule`, then re-dispatch to the
+  // `equivalentKeyword` on that rebuilt text (rather than the original input)
+  this.preTransform = (preTransform === true);
 }
 
-ReconstructionRule.prototype = 
+ReconstructionRule.prototype =
 {
   print: function()
   {
-    console.log("Reconstruction rule: " + this.rule + ", equivalentKeyword: " + this.equivalentKeyword + ".");
+    console.log("Reconstruction rule: " + this.rule + ", equivalentKeyword: " +
+      this.equivalentKeyword + (this.preTransform ? " (pre)" : "") + ".");
   }
 };
 
@@ -207,12 +211,22 @@ KeywordRules.prototype =
     }
 
     var testEquivalency = /\s*=\s*(\S+)/;
+    // a PRE reassembly: "pre: <template> = <keyword>" -- rebuild the text from
+    // <template>, then re-dispatch to <keyword>
+    var testPre = /^pre:\s*(.+?)\s*=\s*(\S+)\s*$/i;
     // make a reg ex per reconstruction
     var reconsArray = [];
     for (var reconsIndex = 0, numRecons = reconstructionStrings.length; reconsIndex < numRecons;
       reconsIndex++)
     {
       var currentReconstr = reconstructionStrings[reconsIndex];
+      var preResult = testPre.exec(currentReconstr);
+      if (preResult != null)
+      {
+        reconsArray.push(new ReconstructionRule(preResult[1].split(" "),
+          preResult[2].toLowerCase(), true));
+        continue;
+      }
       var equivaResult = testEquivalency.exec(currentReconstr);
       var equivalentKeyword = null;
       if (equivaResult != null)
@@ -234,9 +248,6 @@ KeywordRules.prototype =
   attemptReconstruction: function(inputLine, debugMode)
   {
     var reconstructedLine = null;
-    var numberRegEx = /^(\d+)/;
-    var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]+/;
-    var trimmedSpacesRegEx = /(^\s+|\s+$)/g;
 
     // for consistency's sake, force to lower case
     inputLine = inputLine.toLowerCase();
@@ -279,56 +290,79 @@ KeywordRules.prototype =
         var equivalentKeyword = reconstructionToBeUsed.equivalentKeyword;
 
         // if we encounter NEWKEY, don't try this keyword anymore
-        if (rule == "NEWKEY") 
+        if (rule == "NEWKEY")
         {
           return null;
         }
 
-        // if equivalency, use that instead
+        // PRE: rebuild the text from the template, then re-dispatch to another
+        // keyword on that rebuilt text
+        if (reconstructionToBeUsed.preTransform)
+        {
+          var rebuiltLine = this.reassemble(rule, decompResult);
+          var preKeywordRules = this.allKeywordToKeywordRules[equivalentKeyword];
+          if (preKeywordRules == null)
+          {
+            return [rebuiltLine, decompRules.memoryFunction];
+          }
+          return preKeywordRules.attemptReconstruction(rebuiltLine, debugMode);
+        }
+        // if equivalency, redirect to that keyword on the original input
         if (equivalentKeyword != null)
         {
           var equivalentkeywordRules = this.allKeywordToKeywordRules[equivalentKeyword];
           return equivalentkeywordRules.attemptReconstruction(inputLine, debugMode);
         }
         // otherwise, do reconstruction as usual
-        else 
-        {
-          reconstructedLine = "";
-          for (var tokenIndex = 0, numTokens = rule.length; tokenIndex < numTokens; tokenIndex++)
-          {
-            var currentReconToken = rule[tokenIndex];
-            if (tokenIndex > 0) reconstructedLine += " ";
-            // if it's a number, look up token in original line
-            if (numberRegEx.test(currentReconToken))
-            {
-              var numberMatch = numberRegEx.exec(currentReconToken)[1];
-              // first token of deconstruction is decompResult[1]; remaining tokens follow
-              // decompResult[0] is the whole string
-              var realTokenIndex = parseInt(numberMatch) + 1;
-              // trim any spaces at ends, if token exists
-              var tokenUsed = "";
-              if (decompResult.length > realTokenIndex)
-              {
-                tokenUsed = decompResult[realTokenIndex].replace(trimmedSpacesRegEx, '');
-              }
-              reconstructedLine += tokenUsed;
-              // add any punctuation 
-              var punctuationMatch = punctuationRegEx.exec(currentReconToken);
-              if (punctuationMatch !== null)
-              {
-                reconstructedLine += punctuationMatch;
-              }
-            }
-            else {
-              reconstructedLine += currentReconToken;
-            }
-          }
-        }
+        reconstructedLine = this.reassemble(rule, decompResult);
         memoryFunction = decompRules.memoryFunction;
       }
     }
 
     return [reconstructedLine, memoryFunction];
+  },
+
+  // build an output string from a reassembly rule's tokens: numbered tokens are
+  // replaced by the corresponding decomposition fragment, everything else is
+  // copied verbatim
+  reassemble: function(rule, decompResult)
+  {
+    var numberRegEx = /^(\d+)/;
+    var punctuationRegEx = /[.,\/#!?$%\^&\*;:{}=\-_`~()]+/;
+    var trimmedSpacesRegEx = /(^\s+|\s+$)/g;
+
+    var reconstructedLine = "";
+    for (var tokenIndex = 0, numTokens = rule.length; tokenIndex < numTokens; tokenIndex++)
+    {
+      var currentReconToken = rule[tokenIndex];
+      if (tokenIndex > 0) reconstructedLine += " ";
+      // if it's a number, look up token in original line
+      if (numberRegEx.test(currentReconToken))
+      {
+        var numberMatch = numberRegEx.exec(currentReconToken)[1];
+        // first token of deconstruction is decompResult[1]; remaining tokens follow
+        // decompResult[0] is the whole string
+        var realTokenIndex = parseInt(numberMatch) + 1;
+        // trim any spaces at ends, if token exists
+        var tokenUsed = "";
+        if (decompResult.length > realTokenIndex)
+        {
+          tokenUsed = decompResult[realTokenIndex].replace(trimmedSpacesRegEx, '');
+        }
+        reconstructedLine += tokenUsed;
+        // add any punctuation
+        var punctuationMatch = punctuationRegEx.exec(currentReconToken);
+        if (punctuationMatch !== null)
+        {
+          reconstructedLine += punctuationMatch;
+        }
+      }
+      else
+      {
+        reconstructedLine += currentReconToken;
+      }
+    }
+    return reconstructedLine;
   },
 
   print: function()
