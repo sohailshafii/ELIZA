@@ -16,10 +16,9 @@
 #  - Equivalence keywords ("key: X = Y") are listed AFTER their target Y,
 #    because this engine resolves equivalences at parse time.
 #
-# The R6 MEMORY rule is supported directly (see the "memory: MY" block below).
-# One construct still cannot be expressed by this engine and is approximated:
-#  - R5 PRE (YOU'RE / I'M): approximated by the multi-word pre-replacements
-#    "YOU'RE=YOU ARE" and "I'M=I AM".
+# All six CACM rule forms are supported directly, including R5 PRE (the YOU'RE /
+# I'M keywords, "pre: <template> = <keyword>") and R6 MEMORY (the "memory: MY"
+# block) -- no approximations remain.
 #
 # The single greeting is from the script. The Quit lines are an app-level
 # addition (the original program handled termination separately).
@@ -29,7 +28,7 @@ Intro: How do you do. Please tell me your problem.
 Quit: Goodbye.
 Quit: Take care of yourself.
 
-# on-the-fly word substitutions (R2), DLIST substitutions, and PRE approximations
+# on-the-fly word substitutions (R2) and DLIST substitutions
 pre-replacement: DONT=DON'T
 pre-replacement: CANT=CAN'T
 pre-replacement: WONT=WON'T
@@ -41,8 +40,6 @@ pre-replacement: DREAMED=DREAMT
 pre-replacement: DREAMS=DREAM
 pre-replacement: MOM=MOTHER
 pre-replacement: DAD=FATHER
-pre-replacement: YOU'RE=YOU ARE
-pre-replacement: I'M=I AM
 
 # DLIST tag classes (R3)
 family: BELIEF=FEEL,THINK,BELIEVE,WISH
@@ -332,6 +329,22 @@ key: YOU
 		reassembly: Oh, I 2?
 		reassembly: You're not really talking about me - are you?
 		reassembly: What are your feelings now?
+	enddecomp
+endkey
+
+# R5 PRE rules: substitute the contraction, then rebuild the text and
+# re-dispatch to another keyword. "pre: <template> = <keyword>".
+key: YOU'RE
+	replace: I'M
+	decomp: 0 I'M 0
+		reassembly: pre: i are 2 = YOU
+	enddecomp
+endkey
+
+key: I'M
+	replace: YOU'RE
+	decomp: 0 YOU'RE 0
+		reassembly: pre: you are 2 = I
 	enddecomp
 endkey
 
