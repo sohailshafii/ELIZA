@@ -62,6 +62,15 @@ test('a specific decomposition wins over the generic catch-all', function() {
   assert.strictEqual(out, 'I am sorry to hear you are unhappy.');
 });
 
+test('the catch-all rule echoes the whole phrase', function() {
+  var engine = buildEngine();
+  // The lone "0" decomposition binds the entire phrase to fragment 0. A lazy
+  // first-token capture used to leave it empty, producing "You say ."
+  var out = engine.analyzeInputLine('I usually win at blackjack.');
+
+  assert.strictEqual(out, 'You say you usually win at blackjack.');
+});
+
 test('holds the canonical conversation without crashing or going silent', function() {
   var engine = buildEngine();
   CANONICAL_CONVERSATION.forEach(function(line) {
